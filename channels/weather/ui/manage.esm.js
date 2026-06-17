@@ -346,24 +346,63 @@ class WeatherManager extends HTMLElement {
     this.state.form.lat = '';
     this.state.form.lon = '';
     clearTimeout(this._cityDebounce);
-    if (value.length < 2) { this.setState({ cityResults: [] }); return; }
-    this._cityDebounce = setTimeout(() => this.searchCity(value), 400);
+    // Clear dropdown without a full re-render — just update the DOM directly
+    this._updateCityDropdown([]);
+    if (value.length < 3) return;
+    this._cityDebounce = setTimeout(() => this.searchCity(value), 500);
   }
 
   async searchCity(q) {
-    this.setState({ citySearching: true });
+    // Don't setState here — that would destroy the input mid-typing.
+    // Update only the dropdown node directly.
     try {
       const r = await fetch(`${this.apiBase}/search-city?q=${encodeURIComponent(q)}`);
       const results = await r.json();
-      this.setState({ cityResults: results || [], citySearching: false });
+      this.state.cityResults = results || [];
+      this._updateCityDropdown(results || []);
     } catch (_) {
-      this.setState({ citySearching: false, cityResults: [] });
+      this.state.cityResults = [];
+      this._updateCityDropdown([]);
     }
   }
 
+  _updateCityDropdown(results) {
+    const root = this.shadowRoot;
+    const wrap = root?.querySelector('.city-search-wrap');
+    if (!wrap) return;
+
+    let dropdown = wrap.querySelector('.city-dropdown');
+    if (!results.length) {
+      if (dropdown) dropdown.remove();
+      return;
+    }
+    if (!dropdown) {
+      dropdown = document.createElement('div');
+      dropdown.className = 'city-dropdown';
+      wrap.appendChild(dropdown);
+    }
+    dropdown.innerHTML = results.map((r, i) =>
+      `<div class="city-option" data-index="${i}">${this._esc(r.display_name)}</div>`
+    ).join('');
+    dropdown.querySelectorAll('.city-option').forEach(el => {
+      el.addEventListener('click', () => {
+        const r = this.state.cityResults[parseInt(el.dataset.index, 10)];
+        if (r) this.selectCity(r);
+      });
+    });
+  }
+
   selectCity(result) {
+    this.state.cityResults = [];
+    const cityInput = this.shadowRoot?.querySelector('[data-city-input]');
+    if (cityInput) cityInput.value = result.display_name;
+    this._updateCityDropdown([]);
     const form = { ...this.state.form, city_name: result.name, country: result.country, lat: result.lat, lon: result.lon };
-    this.setState({ form, cityQuery: result.display_name, cityResults: [] });
+    this.state.form = form;
+    this.state.cityQuery = result.display_name;
+    // Update the coords hint without a full re-render
+    const hint = this.shadowRoot?.querySelector('.city-coords-hint');
+    if (hint) hint.textContent = `📍 ${result.lat.toFixed(4)}, ${result.lon.toFixed(4)}`;
     this.schedulePreview();
   }
 
@@ -531,7 +570,7 @@ class WeatherManager extends HTMLElement {
   }
 
   buildEditPanel() {
-    const { form, editingId, cityQuery, cityResults, citySearching, saving, previewUrls, previewLoading } = this.state;
+    const { form, editingId, cityQuery, saving, previewUrls, previewLoading } = this.state;
     const isNew = editingId === '';
     const title = isNew ? 'Add Weather Display' : 'Edit Weather Display';
 
@@ -580,13 +619,9 @@ class WeatherManager extends HTMLElement {
             <div class="field">
               <label>City</label>
               <div class="city-search-wrap">
-                <input type="text" placeholder="Search city…" value="${this._esc(cityQuery)}" data-city-input autocomplete="off" />
-                ${citySearching ? '<div class="city-dropdown"><div class="city-option" style="color:var(--color-text-secondary,#888)">Searching…</div></div>' : ''}
-                ${cityResults.length ? `<div class="city-dropdown">${cityResults.map((r, i) => `
-                  <div class="city-option" data-action="select-city" data-index="${i}">${this._esc(r.display_name)}</div>`).join('')}
-                </div>` : ''}
+                <input type="text" placeholder="Type at least 3 characters…" value="${this._esc(cityQuery)}" data-city-input autocomplete="off" />
               </div>
-              ${form.lat ? `<span class="field-hint">📍 ${this._esc(form.lat?.toFixed?.(4) || form.lat)}, ${this._esc(form.lon?.toFixed?.(4) || form.lon)}</span>` : ''}
+              <span class="field-hint city-coords-hint">${form.lat ? `📍 ${this._esc(form.lat?.toFixed?.(4) || form.lat)}, ${this._esc(form.lon?.toFixed?.(4) || form.lon)}` : ''}</span>
             </div>
             <div class="field-row">
               <div class="field">
@@ -692,10 +727,6 @@ class WeatherManager extends HTMLElement {
         else if (a === 'delete-display') this.deleteDisplay(el.dataset.id);
         else if (a === 'close-edit')    this.closeEdit();
         else if (a === 'save-display')  this.saveDisplay();
-        else if (a === 'select-city') {
-          const r = this.state.cityResults[parseInt(el.dataset.index, 10)];
-          if (r) this.selectCity(r);
-        }
         else if (a === 'save-settings') this.saveSettings();
         else if (a === 'set-layout') {
           this.state.form.layout = el.dataset.layout;

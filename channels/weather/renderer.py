@@ -66,6 +66,7 @@ THEMES = {
 class WeatherRenderer:
     def __init__(self, icons_dir: Path):
         self.icons_dir = icons_dir
+        self.icons_dir.mkdir(parents=True, exist_ok=True)
         self._font_path: Optional[Path] = self._find_font_path()
         self._font_cache: Dict[int, Any] = {}
         self._icon_cache: Dict[str, Any] = {}
@@ -249,40 +250,40 @@ class WeatherRenderer:
     # Portrait layout
 
     def _portrait(self, canvas, draw, current, forecast, cfg, W, H, t):
-        pad = max(16, W // 24)
+        pad = max(14, W // 28)
 
-        fs_city   = max(13, W // 22)
-        fs_temp   = max(56, W // 4)
-        fs_cond   = max(13, W // 26)
-        fs_detail = max(11, W // 30)
-        fs_fday   = max(10, W // 32)
+        fs_city   = max(12, W // 24)
+        fs_temp   = max(48, W // 5)      # was W//4 — smaller so content sits higher
+        fs_cond   = max(12, W // 28)
+        fs_detail = max(11, W // 32)
+        fs_fday   = max(10, W // 34)
 
         cy = pad
 
         city = f"{current.get('name', cfg.city_name)}, {current.get('sys', {}).get('country', cfg.country)}"
         self._draw_center(draw, city, W // 2, cy, self._font(fs_city), t["secondary"])
-        cy += fs_city + pad
+        cy += fs_city + pad // 3          # tighter gap: was + pad
 
-        icon_size = min(W // 3, H // 8)
+        icon_size = min(W // 4, H // 9, 96)  # smaller + capped: was min(W//3, H//8)
         self._paste_icon(canvas, current["weather"][0]["icon"], W // 2 - icon_size // 2, cy, icon_size)
-        cy += icon_size + pad // 2
+        cy += icon_size + pad // 3
 
         temp_str = self._temp(current["main"]["temp"], cfg.units)
         self._draw_center(draw, temp_str, W // 2, cy, self._font(fs_temp), t["text"])
-        cy += fs_temp + pad // 2
+        cy += fs_temp + pad // 3
 
         self._draw_center(draw, current["weather"][0]["description"].title(), W // 2, cy, self._font(fs_cond), t["secondary"])
-        cy += fs_cond + pad // 2
+        cy += fs_cond + pad // 3
 
         if cfg.show_high_low:
             hl = f"H:{self._temp(current['main']['temp_max'], cfg.units)}   L:{self._temp(current['main']['temp_min'], cfg.units)}"
             self._draw_center(draw, hl, W // 2, cy, self._font(fs_detail), t["secondary"])
-            cy += fs_detail + pad // 4
+            cy += fs_detail + pad // 5
 
         if cfg.show_feels_like:
             self._draw_center(draw, f"Feels like {self._temp(current['main']['feels_like'], cfg.units)}",
                               W // 2, cy, self._font(fs_detail), t["secondary"])
-            cy += fs_detail + pad // 4
+            cy += fs_detail + pad // 5
 
         row = []
         if cfg.show_humidity:
@@ -291,19 +292,19 @@ class WeatherRenderer:
             row.append(f"Wind {self._speed(current['wind']['speed'], cfg.units)}")
         if row:
             self._draw_center(draw, "  ·  ".join(row), W // 2, cy, self._font(fs_detail), t["secondary"])
-            cy += fs_detail + pad
+            cy += fs_detail + pad // 2
 
         draw.line([(pad * 2, cy), (W - pad * 2, cy)], fill=t["divider"], width=1)
-        cy += pad
+        cy += pad // 2
 
         if cfg.show_forecast and forecast:
             days = forecast[:cfg.forecast_days]
             col_w = (W - pad * 2) // len(days)
-            icon_sm = min(col_w - 8, W // 8)
+            icon_sm = min(col_w - 8, W // 7)
 
             for i, day in enumerate(days):
                 cx = pad + i * col_w + col_w // 2
-                fy = cy
+                fy = cy + pad // 3
                 self._draw_center(draw, self._day_abbr(day["date"]), cx, fy, self._font(fs_fday), t["secondary"])
                 fy += fs_fday + 4
                 self._paste_icon(canvas, day["icon"], cx - icon_sm // 2, fy, icon_sm)
@@ -319,22 +320,22 @@ class WeatherRenderer:
     # Square layout
 
     def _square(self, canvas, draw, current, forecast, cfg, W, H, t):
-        pad = max(16, W // 32)
+        pad = max(14, W // 36)
 
-        fs_city   = max(12, W // 30)
-        fs_temp   = max(48, W // 6)
-        fs_cond   = max(12, W // 32)
-        fs_detail = max(11, W // 36)
-        fs_fday   = max(10, W // 40)
+        fs_city   = max(11, W // 32)
+        fs_temp   = max(38, W // 7)      # was W//6 — smaller so details+forecast fit
+        fs_cond   = max(11, W // 34)
+        fs_detail = max(10, W // 40)
+        fs_fday   = max(9,  W // 44)
 
         cy = pad
 
         city = f"{current.get('name', cfg.city_name)}, {current.get('sys', {}).get('country', cfg.country)}"
         self._draw_center(draw, city, W // 2, cy, self._font(fs_city), t["secondary"])
-        cy += fs_city + pad // 2
+        cy += fs_city + pad // 3
 
-        # Icon + temp side-by-side
-        icon_size = min(W // 4, H // 6)
+        # Icon + temp side-by-side, smaller icon so temp has room
+        icon_size = min(W // 5, H // 7)
         icon_x = W // 4 - icon_size // 2
         self._paste_icon(canvas, current["weather"][0]["icon"], icon_x, cy, icon_size)
 
@@ -343,51 +344,52 @@ class WeatherRenderer:
         bb = draw.textbbox((0, 0), temp_str, font=tf)
         tw, th = bb[2] - bb[0], bb[3] - bb[1]
         draw.text((W * 3 // 4 - tw // 2, cy + (icon_size - th) // 2), temp_str, font=tf, fill=t["text"])
-        cy += icon_size + pad // 2
+        cy += icon_size + pad // 3
 
         self._draw_center(draw, current["weather"][0]["description"].title(), W // 2, cy, self._font(fs_cond), t["secondary"])
-        cy += fs_cond + pad // 2
+        cy += fs_cond + pad // 3
 
-        # Details: two columns
-        left_bits, right_bits = [], []
-        if cfg.show_high_low:
-            left_bits.append(f"H: {self._temp(current['main']['temp_max'], cfg.units)}")
-            right_bits.append(f"L: {self._temp(current['main']['temp_min'], cfg.units)}")
-        if cfg.show_feels_like:
-            left_bits.append(f"Feels {self._temp(current['main']['feels_like'], cfg.units)}")
-            right_bits.append("")
-        if cfg.show_humidity:
-            left_bits.append(f"Humidity {current['main']['humidity']}%")
-            right_bits.append("")
-        if cfg.show_wind:
-            left_bits.append(f"Wind {self._speed(current['wind']['speed'], cfg.units)}")
-            right_bits.append("")
-
+        # Compact details: 2 rows instead of 4
+        # Row 1: H/L
+        # Row 2: Feels · Humidity · Wind
         df = self._font(fs_detail)
-        row_h = fs_detail + 4
-        for i, (l, r) in enumerate(zip(left_bits, right_bits)):
-            y = cy + i * row_h
-            draw.text((pad, y), l, font=df, fill=t["secondary"])
-            if r:
-                rw = self._text_w(draw, r, df)
-                draw.text((W - pad - rw, y), r, font=df, fill=t["secondary"])
-        cy += len(left_bits) * row_h + pad
+        row_h = fs_detail + 3
+        detail_rows = []
+        if cfg.show_high_low:
+            detail_rows.append(
+                f"H:{self._temp(current['main']['temp_max'], cfg.units)}  "
+                f"L:{self._temp(current['main']['temp_min'], cfg.units)}"
+            )
+        sub = []
+        if cfg.show_feels_like:
+            sub.append(f"Feels {self._temp(current['main']['feels_like'], cfg.units)}")
+        if cfg.show_humidity:
+            sub.append(f"Hum {current['main']['humidity']}%")
+        if cfg.show_wind:
+            sub.append(f"Wind {self._speed(current['wind']['speed'], cfg.units)}")
+        if sub:
+            detail_rows.append("  ·  ".join(sub))
+
+        for row in detail_rows:
+            self._draw_center(draw, row, W // 2, cy, df, t["secondary"])
+            cy += row_h
+        cy += pad // 3
 
         draw.line([(pad * 2, cy), (W - pad * 2, cy)], fill=t["divider"], width=1)
-        cy += pad
+        cy += pad // 2
 
         if cfg.show_forecast and forecast:
-            days = forecast[:min(cfg.forecast_days, 4)]
+            days = forecast[:min(cfg.forecast_days, 5)]
             col_w = (W - pad * 2) // len(days)
-            icon_sm = min(col_w - 8, W // 10)
+            icon_sm = min(col_w - 6, W // 12)  # smaller forecast icons
 
             for i, day in enumerate(days):
                 cx = pad + i * col_w + col_w // 2
-                fy = cy
+                fy = cy + pad // 4
                 self._draw_center(draw, self._day_abbr(day["date"]), cx, fy, self._font(fs_fday), t["secondary"])
-                fy += fs_fday + 4
+                fy += fs_fday + 3
                 self._paste_icon(canvas, day["icon"], cx - icon_sm // 2, fy, icon_sm)
-                fy += icon_sm + 4
+                fy += icon_sm + 3
                 self._draw_center(draw, self._temp(day["temp_max"], cfg.units), cx, fy, self._font(fs_fday), t["text"])
                 fy += fs_fday + 2
                 self._draw_center(draw, self._temp(day["temp_min"], cfg.units), cx, fy, self._font(fs_fday), t["secondary"])
