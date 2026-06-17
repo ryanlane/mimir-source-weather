@@ -85,6 +85,7 @@ const CSS = `
     background: var(--color-surface, #162325);
     border: 1px solid var(--color-border, #2a3a3c);
     border-radius: 8px; padding: 0; overflow: hidden;
+    display: flex; flex-direction: column;
   }
   .edit-panel-header {
     background: var(--color-background, #0B1314);
@@ -92,7 +93,7 @@ const CSS = `
     border-bottom: 1px solid var(--color-border, #2a3a3c);
     display: flex; justify-content: space-between; align-items: center;
   }
-  .edit-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .edit-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; flex: 1; overflow: auto; }
   .edit-form { padding: 16px; display: flex; flex-direction: column; gap: 12px; border-right: 1px solid var(--color-border, #2a3a3c); }
   .edit-preview-panel { padding: 16px; display: flex; flex-direction: column; gap: 10px; background: var(--color-background, #0B1314); }
   .preview-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-secondary, #888); }
@@ -138,11 +139,13 @@ const CSS = `
   .toggle-check { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
   .toggle-check input { width: 14px; height: 14px; accent-color: var(--color-accent, #00C851); }
 
-  /* Edit footer */
+  /* Edit footer — always visible at bottom of panel */
   .edit-footer {
     padding: 12px 16px; border-top: 1px solid var(--color-border, #2a3a3c);
     display: flex; gap: 8px; justify-content: flex-end;
     background: var(--color-background, #0B1314);
+    position: sticky; bottom: 0; z-index: 2;
+    flex-shrink: 0;
   }
 
   /* Layout selector */
@@ -308,17 +311,21 @@ class WeatherManager extends HTMLElement {
     this.setState({ editingId: null, form: blankForm(), cityQuery: '', cityResults: [], previewUrls: {} });
   }
 
-  async saveDisplay() {
+  async saveLocation() {
     const { form, editingId } = this.state;
-    if (!form.name) { this.setState({ message: { type: 'error', text: 'Display name is required' } }); return; }
     if (!form.lat || !form.lon) { this.setState({ message: { type: 'error', text: 'Select a city from the search results' } }); return; }
+    // Use city name as fallback if user left name blank
+    if (!form.name) form.name = form.city_name || 'Weather';
 
     this.setState({ saving: true, message: null });
     try {
       const url = editingId ? `${this.apiBase}/subchannels/${editingId}` : `${this.apiBase}/subchannels`;
       const method = editingId ? 'PUT' : 'POST';
+      // Never send an empty id — let the server assign one for new entries
+      const body = { ...form };
+      if (!body.id) delete body.id;
       const r = await fetch(url, {
-        method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form),
+        method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       this.setState({ saving: false });
@@ -329,10 +336,12 @@ class WeatherManager extends HTMLElement {
     }
   }
 
-  async deleteDisplay(id) {
-    if (!confirm('Remove this weather display?')) return;
+  async deleteLocation(id) {
+    if (!id) { console.error('[Weather] deleteLocation called with no id'); return; }
+    if (!confirm('Remove this weather location?')) return;
     try {
-      await fetch(`${this.apiBase}/subchannels/${id}`, { method: 'DELETE' });
+      const r = await fetch(`${this.apiBase}/subchannels/${id}`, { method: 'DELETE' });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
       await this.loadStatus();
     } catch (e) {
       this.setState({ message: { type: 'error', text: `Delete failed: ${e.message}` } });
@@ -394,14 +403,21 @@ class WeatherManager extends HTMLElement {
 
   selectCity(result) {
     this.state.cityResults = [];
-    const cityInput = this.shadowRoot?.querySelector('[data-city-input]');
+    const root = this.shadowRoot;
+    const cityInput = root?.querySelector('[data-city-input]');
     if (cityInput) cityInput.value = result.display_name;
     this._updateCityDropdown([]);
     const form = { ...this.state.form, city_name: result.name, country: result.country, lat: result.lat, lon: result.lon };
     this.state.form = form;
     this.state.cityQuery = result.display_name;
-    // Update the coords hint without a full re-render
-    const hint = this.shadowRoot?.querySelector('.city-coords-hint');
+    // Auto-fill name from city if the field is still blank
+    if (!form.name) {
+      form.name = result.name;
+      this.state.form.name = result.name;
+      const nameInput = root?.querySelector('[data-field="name"]');
+      if (nameInput) nameInput.value = result.name;
+    }
+    const hint = root?.querySelector('.city-coords-hint');
     if (hint) hint.textContent = `📍 ${result.lat.toFixed(4)}, ${result.lon.toFixed(4)}`;
     this.schedulePreview();
   }
@@ -534,7 +550,7 @@ class WeatherManager extends HTMLElement {
 
   buildDisplayList() {
     const { displays } = this.state;
-    if (!displays.length) return `<div class="empty-state">No weather displays yet. Click <strong>+ Add Display</strong> to create one.</div>`;
+    if (!displays.length) return `<div class="empty-state">No weather locations yet. Click <strong>+ Add Location</strong> to create one.</div>`;
     return `<div class="display-list">${displays.map(d => `
       <div class="display-card">
         <div class="display-thumb" data-display-id="${d.id}">
@@ -551,8 +567,8 @@ class WeatherManager extends HTMLElement {
           </div>
         </div>
         <div class="display-actions">
-          <button class="btn btn-secondary btn-sm" data-action="edit-display" data-id="${d.id}">Edit</button>
-          <button class="btn btn-danger btn-sm btn-icon" data-action="delete-display" data-id="${d.id}" title="Remove">✕</button>
+          <button class="btn btn-secondary btn-sm" data-action="edit-location" data-id="${d.id}">Edit</button>
+          <button class="btn btn-danger btn-sm btn-icon" data-action="delete-location" data-id="${d.id}" title="Remove">✕</button>
         </div>
       </div>`).join('')}</div>`;
   }
@@ -597,7 +613,7 @@ class WeatherManager extends HTMLElement {
   buildEditPanel() {
     const { form, editingId, cityQuery, saving, previewUrls } = this.state;
     const isNew = editingId === '';
-    const title = isNew ? 'Add Weather Display' : 'Edit Weather Display';
+    const title = isNew ? 'Add Weather Location' : 'Edit Weather Location';
 
     // Layout selector
     const layoutGrid = LAYOUTS.map(l => `
@@ -698,8 +714,8 @@ class WeatherManager extends HTMLElement {
         </div>
         <div class="edit-footer">
           <button class="btn btn-secondary btn-sm" data-action="close-edit">Cancel</button>
-          <button class="btn btn-primary btn-sm" data-action="save-display" ${saving ? 'disabled' : ''}>
-            ${saving ? '<span class="spinner"></span> Saving…' : (isNew ? 'Add Display' : 'Save Changes')}
+          <button class="btn btn-primary btn-sm" data-action="save-location" ${saving ? 'disabled' : ''}>
+            ${saving ? '<span class="spinner"></span> Saving…' : (isNew ? 'Add Location' : 'Save Changes')}
           </button>
         </div>
       </div>`;
@@ -733,8 +749,8 @@ class WeatherManager extends HTMLElement {
           ${this.buildKeyPanel()}
           <div class="section">
             <div class="section-header">
-              <span class="section-title">Weather Displays</span>
-              <button class="btn btn-primary btn-sm" data-action="add-display">+ Add Display</button>
+              <span class="section-title">Weather Locations</span>
+              <button class="btn btn-primary btn-sm" data-action="add-location">+ Add Location</button>
             </div>
             ${editingId === null ? this.buildDisplayList() : ''}
           </div>
@@ -771,15 +787,20 @@ class WeatherManager extends HTMLElement {
         if (a === 'validate-key')   this.validateKey();
         else if (a === 'show-change-key')   this.setState({ showChangeKey: true, apiKeyInput: '', message: null });
         else if (a === 'cancel-change-key') this.setState({ showChangeKey: false, message: null });
-        else if (a === 'add-display')   this.openAdd();
-        else if (a === 'edit-display')  this.openEdit(el.dataset.id);
-        else if (a === 'delete-display') this.deleteDisplay(el.dataset.id);
-        else if (a === 'close-edit')    this.closeEdit();
-        else if (a === 'save-display')  this.saveDisplay();
+        else if (a === 'add-location')    this.openAdd();
+        else if (a === 'edit-location')   this.openEdit(el.dataset.id);
+        else if (a === 'delete-location') this.deleteLocation(el.dataset.id);
+        else if (a === 'close-edit')      this.closeEdit();
+        else if (a === 'save-location')   this.saveLocation();
         else if (a === 'save-settings') this.saveSettings();
         else if (a === 'set-layout') {
           this.state.form.layout = el.dataset.layout;
-          this.setState({ previewUrls: {} });
+          this.state.previewUrls = {};
+          // Update highlighted option directly — no re-render
+          root.querySelectorAll('.layout-opt').forEach(opt => {
+            opt.classList.toggle('selected', opt.dataset.layout === el.dataset.layout);
+          });
+          this._setPreviewContent(`<div class="preview-placeholder"><span class="spinner" style="margin:auto"></span></div>`);
           this.schedulePreview();
         }
       });
@@ -806,8 +827,7 @@ class WeatherManager extends HTMLElement {
           this.state.form[field] = val;
           this.schedulePreview();
         }
-        // Re-render for layout changes to update the layout grid highlight
-        if (field === 'layout') this.render();
+        // layout is set via set-layout action, not data-field — nothing here
       };
       el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', handler);
       if (el.tagName === 'SELECT') el.addEventListener('change', handler);

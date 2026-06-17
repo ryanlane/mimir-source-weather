@@ -39,8 +39,10 @@ class WeatherDisplay:
     @classmethod
     def create(cls, data: Dict[str, Any]) -> "WeatherDisplay":
         data = dict(data)
-        data.setdefault("id", str(uuid.uuid4()))
-        data.setdefault("created_at", time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+        if not data.get("id"):
+            data["id"] = str(uuid.uuid4())
+        if not data.get("created_at"):
+            data["created_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         return cls.from_dict(data)
 
 
