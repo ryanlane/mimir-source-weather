@@ -415,13 +415,14 @@ class WeatherManager extends HTMLElement {
   async loadPreview() {
     const { form } = this.state;
     if (!form.lat || !form.lon) return;
-    this.setState({ previewLoading: true });
+    // Don't setState here — that would cause a render and steal focus.
+    // Show a spinner directly in the preview panel instead.
+    this._setPreviewContent(`<div class="preview-placeholder"><span class="spinner" style="margin:auto"></span></div>`);
 
     try {
       const baseConfig = { ...form };
 
       if (form.layout === 'auto') {
-        // Fetch all three orientations in parallel
         const results = await Promise.all(
           AUTO_PREVIEWS.map(async (p) => {
             const cfg = { ...baseConfig, layout: p.layout };
@@ -435,20 +436,44 @@ class WeatherManager extends HTMLElement {
           })
         );
         const urls = Object.fromEntries(results.filter(([, u]) => u));
-        this.setState({ previewUrls: urls, previewLoading: false });
+        this.state.previewUrls = urls;
+        this.state.previewLoading = false;
+        const autoItems = AUTO_PREVIEWS.map(p => {
+          const url = urls[p.layout];
+          return url ? `<div class="preview-auto-item"><img src="${url}" width="${p.w}" height="${p.h}" alt="${p.label}" /><span>${p.label}</span></div>` : '';
+        }).join('');
+        this._setPreviewContent(autoItems
+          ? `<div class="preview-auto">${autoItems}</div>`
+          : `<div class="preview-placeholder">No preview available</div>`);
       } else {
         const [pw, ph] = PREVIEW_SIZES[form.layout] || PREVIEW_SIZES.landscape;
         const r = await fetch(`${this.apiBase}/preview`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ config: { ...baseConfig }, w: pw, h: ph }),
         });
-        if (!r.ok) { this.setState({ previewLoading: false }); return; }
+        if (!r.ok) { this._setPreviewContent(`<div class="preview-placeholder">Preview unavailable</div>`); return; }
         const blob = await r.blob();
-        this.setState({ previewUrls: { [form.layout]: URL.createObjectURL(blob) }, previewLoading: false });
+        const url = URL.createObjectURL(blob);
+        this.state.previewUrls = { [form.layout]: url };
+        this.state.previewLoading = false;
+        this._setPreviewContent(`<img class="preview-single" src="${url}" alt="preview" />`);
       }
     } catch (_) {
-      this.setState({ previewLoading: false });
+      this.state.previewLoading = false;
+      this._setPreviewContent(`<div class="preview-placeholder">Preview failed</div>`);
     }
+  }
+
+  _setPreviewContent(html) {
+    const panel = this.shadowRoot?.querySelector('.edit-preview-panel');
+    if (!panel) return;
+    // Replace everything after the label span
+    const label = panel.querySelector('.preview-label');
+    // Remove all children except the label
+    [...panel.children].forEach(c => { if (c !== label) c.remove(); });
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    while (div.firstChild) panel.appendChild(div.firstChild);
   }
 
   // ── Render helpers ───────────────────────────────────────────────────────
@@ -570,7 +595,7 @@ class WeatherManager extends HTMLElement {
   }
 
   buildEditPanel() {
-    const { form, editingId, cityQuery, saving, previewUrls, previewLoading } = this.state;
+    const { form, editingId, cityQuery, saving, previewUrls } = this.state;
     const isNew = editingId === '';
     const title = isNew ? 'Add Weather Display' : 'Edit Weather Display';
 
@@ -581,11 +606,9 @@ class WeatherManager extends HTMLElement {
         <span class="lname">${l.label}</span>
       </div>`).join('');
 
-    // Preview panel content
+    // Preview panel content (initial render — _setPreviewContent updates it live without re-render)
     let previewContent;
-    if (previewLoading) {
-      previewContent = `<div class="preview-placeholder"><span class="spinner" style="margin:auto"></span></div>`;
-    } else if (!form.lat) {
+    if (!form.lat) {
       previewContent = `<div class="preview-placeholder">Search for a city to see a live preview of your weather display.</div>`;
     } else if (form.layout === 'auto') {
       const autoItems = AUTO_PREVIEWS.map(p => {
@@ -683,15 +706,27 @@ class WeatherManager extends HTMLElement {
   }
 
   render() {
-    const { loading, setupRequired, editingId, message, showChangeKey } = this.state;
+    const shadow = this.shadowRoot;
+
+    // Save focus so re-renders don't steal it from inputs the user is typing in
+    const focused = shadow?.activeElement;
+    let focusKey = null, selStart = null, selEnd = null;
+    if (focused) {
+      if (focused.hasAttribute('data-city-input')) focusKey = '__city__';
+      else if (focused.dataset?.field) focusKey = focused.dataset.field;
+      selStart = focused.selectionStart ?? null;
+      selEnd   = focused.selectionEnd   ?? null;
+    }
+
+    const { loading, setupRequired, editingId, message } = this.state;
     const msgHtml = message ? `<div class="msg ${message.type}"><span>${message.type === 'success' ? '✓' : message.type === 'error' ? '✕' : '⟳'}</span>${this._esc(message.text)}</div>` : '';
 
     if (loading) {
-      this.shadowRoot.innerHTML = `<style>${CSS}</style><div class="manager"><div class="msg info"><span class="spinner"></span> Loading…</div></div>`;
+      shadow.innerHTML = `<style>${CSS}</style><div class="manager"><div class="msg info"><span class="spinner"></span> Loading…</div></div>`;
       return;
     }
 
-    this.shadowRoot.innerHTML = `
+    shadow.innerHTML = `
       <style>${CSS}</style>
       <div class="manager">
         ${setupRequired ? this.buildSetupBanner() : `
@@ -710,6 +745,20 @@ class WeatherManager extends HTMLElement {
       </div>`;
 
     this._attachListeners();
+
+    // Restore focus and cursor after DOM rebuild
+    if (focusKey) {
+      const sel = focusKey === '__city__'
+        ? '[data-city-input]'
+        : `[data-field="${focusKey}"]`;
+      const el = shadow.querySelector(sel);
+      if (el) {
+        el.focus();
+        if (selStart !== null && typeof el.setSelectionRange === 'function') {
+          try { el.setSelectionRange(selStart, selEnd); } catch (_) {}
+        }
+      }
+    }
   }
 
   _attachListeners() {
