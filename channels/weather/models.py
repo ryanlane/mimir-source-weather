@@ -20,6 +20,7 @@ class WeatherDisplay:
     units: str = "imperial"       # "imperial" | "metric"
     layout: str = "auto"          # "auto" | "landscape" | "portrait" | "square"
     theme: str = "dark"           # "dark" | "light"
+    timezone: str = "UTC"         # IANA timezone name e.g. "America/New_York"
     show_forecast: bool = True
     forecast_days: int = 3        # 1–5
     show_humidity: bool = True

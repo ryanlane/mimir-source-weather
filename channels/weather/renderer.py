@@ -19,6 +19,10 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+try:
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+except ImportError:
+    from backports.zoneinfo import ZoneInfo, ZoneInfoNotFoundError  # type: ignore
 
 logger = logging.getLogger("mimir.channels.weather.renderer")
 
@@ -152,6 +156,14 @@ class WeatherRenderer:
     # Helpers
 
     @staticmethod
+    def _now_str(tz_name: str) -> str:
+        try:
+            tz = ZoneInfo(tz_name or "UTC")
+        except (ZoneInfoNotFoundError, Exception):
+            tz = ZoneInfo("UTC")
+        return datetime.now(tz).strftime("%-I:%M %p")
+
+    @staticmethod
     def _temp(value: float, units: str) -> str:
         sym = "°F" if units == "imperial" else "°C"
         return f"{round(value)}{sym}"
@@ -242,7 +254,7 @@ class WeatherRenderer:
                 self._draw_center(draw, self._temp(day["temp_min"], cfg.units), cx, fy, self._font(fs_ftemp), t["secondary"])
 
         # Timestamp bottom-right
-        ts = f"Updated {datetime.now().strftime('%-I:%M %p')}"
+        ts = f"Updated {self._now_str(cfg.timezone)}"
         tw = self._text_w(draw, ts, self._font(fs_detail))
         draw.text((W - pad - tw, H - pad - fs_detail), ts, font=self._font(fs_detail), fill=t["secondary"])
 
@@ -313,7 +325,7 @@ class WeatherRenderer:
                 fy += fs_fday + 2
                 self._draw_center(draw, self._temp(day["temp_min"], cfg.units), cx, fy, self._font(fs_fday), t["secondary"])
 
-        self._draw_center(draw, f"Updated {datetime.now().strftime('%-I:%M %p')}",
+        self._draw_center(draw, f"Updated {self._now_str(cfg.timezone)}",
                           W // 2, H - pad - fs_detail, self._font(fs_detail), t["secondary"])
 
     # ------------------------------------------------------------------
@@ -394,5 +406,5 @@ class WeatherRenderer:
                 fy += fs_fday + 2
                 self._draw_center(draw, self._temp(day["temp_min"], cfg.units), cx, fy, self._font(fs_fday), t["secondary"])
 
-        self._draw_center(draw, f"Updated {datetime.now().strftime('%-I:%M %p')}",
+        self._draw_center(draw, f"Updated {self._now_str(cfg.timezone)}",
                           W // 2, H - pad - fs_detail, self._font(fs_detail), t["secondary"])

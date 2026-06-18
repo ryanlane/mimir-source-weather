@@ -1,4 +1,5 @@
 fastapi
 pillow
 requests
+tzdata
 cairosvg>=2.6.0  # optional: SVG→PNG conversion for Google Weather icons; needs libcairo2

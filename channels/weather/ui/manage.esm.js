@@ -18,6 +18,63 @@ const AUTO_PREVIEWS = [
   { layout: 'square',    w: 260, h: 260, label: 'Square' },
 ];
 
+const TIMEZONES = [
+  { group: 'United States', zones: [
+    ['America/New_York',    'Eastern (ET)'],
+    ['America/Chicago',     'Central (CT)'],
+    ['America/Denver',      'Mountain (MT)'],
+    ['America/Phoenix',     'Arizona (MST, no DST)'],
+    ['America/Los_Angeles', 'Pacific (PT)'],
+    ['America/Anchorage',   'Alaska (AKT)'],
+    ['Pacific/Honolulu',    'Hawaii (HST)'],
+  ]},
+  { group: 'Canada', zones: [
+    ['America/Halifax',    'Atlantic (AT)'],
+    ['America/Toronto',    'Eastern (ET)'],
+    ['America/Winnipeg',   'Central (CT)'],
+    ['America/Edmonton',   'Mountain (MT)'],
+    ['America/Vancouver',  'Pacific (PT)'],
+    ['America/St_Johns',   'Newfoundland (NT)'],
+  ]},
+  { group: 'Europe', zones: [
+    ['Europe/London',   'London (GMT/BST)'],
+    ['Europe/Dublin',   'Dublin (IST)'],
+    ['Europe/Lisbon',   'Lisbon (WET)'],
+    ['Europe/Paris',    'Paris (CET)'],
+    ['Europe/Berlin',   'Berlin (CET)'],
+    ['Europe/Rome',     'Rome (CET)'],
+    ['Europe/Madrid',   'Madrid (CET)'],
+    ['Europe/Amsterdam','Amsterdam (CET)'],
+    ['Europe/Warsaw',   'Warsaw (CET)'],
+    ['Europe/Stockholm','Stockholm (CET)'],
+    ['Europe/Athens',   'Athens (EET)'],
+    ['Europe/Helsinki', 'Helsinki (EET)'],
+    ['Europe/Moscow',   'Moscow (MSK)'],
+  ]},
+  { group: 'Asia / Pacific', zones: [
+    ['Asia/Dubai',     'Dubai (GST)'],
+    ['Asia/Kolkata',   'India (IST)'],
+    ['Asia/Dhaka',     'Bangladesh (BST)'],
+    ['Asia/Bangkok',   'Bangkok (ICT)'],
+    ['Asia/Singapore', 'Singapore (SGT)'],
+    ['Asia/Shanghai',  'China (CST)'],
+    ['Asia/Tokyo',     'Tokyo (JST)'],
+    ['Asia/Seoul',     'Seoul (KST)'],
+    ['Australia/Perth',   'Perth (AWST)'],
+    ['Australia/Adelaide','Adelaide (ACST)'],
+    ['Australia/Sydney',  'Sydney (AEST)'],
+    ['Pacific/Auckland',  'Auckland (NZST)'],
+  ]},
+  { group: 'Other', zones: [
+    ['UTC', 'UTC'],
+    ['America/Sao_Paulo', 'São Paulo (BRT)'],
+    ['America/Argentina/Buenos_Aires', 'Buenos Aires (ART)'],
+    ['Africa/Cairo',    'Cairo (EET)'],
+    ['Africa/Nairobi',  'Nairobi (EAT)'],
+    ['Africa/Johannesburg','Johannesburg (SAST)'],
+  ]},
+];
+
 const CSS = `
   :host {
     display: block;
@@ -201,7 +258,7 @@ const CSS = `
 function blankForm() {
   return {
     id: '', name: '', city_name: '', country: '', lat: '', lon: '',
-    units: 'imperial', layout: 'auto', theme: 'dark',
+    units: 'imperial', layout: 'auto', theme: 'dark', timezone: 'America/New_York',
     show_forecast: true, forecast_days: 3,
     show_humidity: true, show_wind: true,
     show_feels_like: true, show_high_low: true,
@@ -679,6 +736,17 @@ class WeatherManager extends HTMLElement {
               </div>
             </div>
             <div class="field">
+              <label>Timezone</label>
+              <select data-field="timezone">
+                ${TIMEZONES.map(g => `
+                  <optgroup label="${g.group}">
+                    ${g.zones.map(([val, label]) =>
+                      `<option value="${val}" ${form.timezone === val ? 'selected' : ''}>${label}</option>`
+                    ).join('')}
+                  </optgroup>`).join('')}
+              </select>
+            </div>
+            <div class="field">
               <label>Layout</label>
               <div class="layout-grid">${layoutGrid}</div>
             </div>
@@ -818,7 +886,7 @@ class WeatherManager extends HTMLElement {
       const handler = () => {
         let val = el.type === 'checkbox' ? el.checked : el.value;
         if (el.tagName === 'SELECT' && (field === 'forecast_days')) val = parseInt(val, 10);
-        if (['name','units','layout','theme'].includes(field)) {
+        if (['name','units','layout','theme','timezone'].includes(field)) {
           this.state.form[field] = val;
           if (['units','theme'].includes(field)) this.schedulePreview();
         } else if (field === 'apiKeyInput') {
