@@ -258,10 +258,12 @@ const CSS = `
 function blankForm() {
   return {
     id: '', name: '', city_name: '', country: '', lat: '', lon: '',
-    units: 'imperial', layout: 'auto', theme: 'dark', timezone: 'America/New_York',
+    units: 'imperial', layout: 'auto', theme: 'dark', style: 'minimal', timezone: 'America/New_York',
     show_forecast: true, forecast_days: 3,
+    show_hourly: false,
     show_humidity: true, show_wind: true,
     show_feels_like: true, show_high_low: true,
+    show_uv: false, show_dew_point: false, show_visibility: false, show_air_quality: false,
   };
 }
 
@@ -736,6 +738,14 @@ class WeatherManager extends HTMLElement {
               </div>
             </div>
             <div class="field">
+              <label>Style</label>
+              <select data-field="style">
+                <option value="minimal" ${form.style === 'minimal' ? 'selected' : ''}>Minimal — clean, data-first</option>
+                <option value="modern"  ${form.style === 'modern'  ? 'selected' : ''}>Modern — bold typography, accent colors</option>
+                <option value="ios"     ${form.style === 'ios'     ? 'selected' : ''}>iOS — sky gradient, frosted cards</option>
+              </select>
+            </div>
+            <div class="field">
               <label>Timezone</label>
               <select data-field="timezone">
                 ${TIMEZONES.map(g => `
@@ -762,11 +772,16 @@ class WeatherManager extends HTMLElement {
               <label>Show</label>
               <div class="toggles">
                 ${[
-                  ['show_forecast',  'Forecast'],
-                  ['show_humidity',  'Humidity'],
-                  ['show_wind',      'Wind'],
-                  ['show_feels_like','Feels Like'],
-                  ['show_high_low',  'High / Low'],
+                  ['show_forecast',    'Forecast'],
+                  ['show_hourly',      'Hourly'],
+                  ['show_humidity',    'Humidity'],
+                  ['show_wind',        'Wind'],
+                  ['show_feels_like',  'Feels Like'],
+                  ['show_high_low',    'High / Low'],
+                  ['show_uv',          'UV Index'],
+                  ['show_dew_point',   'Dew Point'],
+                  ['show_visibility',  'Visibility'],
+                  ['show_air_quality', 'Air Quality'],
                 ].map(([key, label]) => `
                   <label class="toggle-check">
                     <input type="checkbox" data-field="${key}" ${form[key] ? 'checked' : ''} />
@@ -886,9 +901,9 @@ class WeatherManager extends HTMLElement {
       const handler = () => {
         let val = el.type === 'checkbox' ? el.checked : el.value;
         if (el.tagName === 'SELECT' && (field === 'forecast_days')) val = parseInt(val, 10);
-        if (['name','units','layout','theme','timezone'].includes(field)) {
+        if (['name','units','layout','theme','style','timezone'].includes(field)) {
           this.state.form[field] = val;
-          if (['units','theme'].includes(field)) this.schedulePreview();
+          if (['units','theme','style'].includes(field)) this.schedulePreview();
         } else if (field === 'apiKeyInput') {
           this.state.apiKeyInput = val;
         } else if (field in this.state.form) {

@@ -79,13 +79,16 @@ class WeatherChannel:
     # Weather data (with cache)
 
     async def _get_weather(self, display: WeatherDisplay) -> Dict[str, Any]:
-        """Returns {"current": ..., "forecast": [...]} — fetches if stale."""
+        """Returns {"current", "forecast", "extras"} — fetches if stale."""
         if not self.settings.api_key:
             raise ValueError("API key not configured")
 
-        if not self.cache.needs_refresh(display.lat, display.lon, display.units, self.settings.cache_minutes):
+        needs_refresh = self.cache.needs_refresh(display.lat, display.lon, display.units, self.settings.cache_minutes)
+
+        if not needs_refresh:
             entry = self.cache.get(display.lat, display.lon, display.units)
-            return {"current": entry["current"], "forecast": entry["forecast"]}
+            extras = await self._get_extras(display)
+            return {"current": entry["current"], "forecast": self.cache.get_forecast(display.lat, display.lon, display.units), "extras": extras}
 
         try:
             current, forecast = await asyncio.gather(
@@ -94,15 +97,40 @@ class WeatherChannel:
             )
             self.cache.set(display.lat, display.lon, display.units, current, forecast)
             self.last_error = None
-            return {"current": current, "forecast": forecast}
         except Exception as exc:
             self.last_error = str(exc)
-            # Fall back to stale cache if available
             entry = self.cache.get(display.lat, display.lon, display.units)
             if entry:
                 logger.warning("[Weather] Fetch failed, using stale cache: %s", exc)
-                return {"current": entry["current"], "forecast": entry["forecast"]}
-            raise
+                current = entry["current"]
+                forecast = self.cache.get_forecast(display.lat, display.lon, display.units)
+            else:
+                raise
+
+        extras = await self._get_extras(display)
+        return {"current": current, "forecast": forecast, "extras": extras}
+
+    async def _get_extras(self, display: WeatherDisplay) -> Dict[str, Any]:
+        """Fetches optional data (air quality, UV/dew point) in parallel. Never raises."""
+        needs_aq  = display.show_air_quality
+        needs_uv  = display.show_uv or display.show_dew_point
+
+        tasks = []
+        if needs_aq:
+            tasks.append(asyncio.to_thread(_fetcher.get_air_quality, display.lat, display.lon, self.settings.api_key))
+        if needs_uv:
+            tasks.append(asyncio.to_thread(_fetcher.get_onecall_extras, display.lat, display.lon, self.settings.api_key, display.units))
+
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        extras: Dict[str, Any] = {}
+        idx = 0
+        if needs_aq:
+            r = results[idx]; idx += 1
+            extras["air_quality"] = r if isinstance(r, dict) else None
+        if needs_uv:
+            r = results[idx]; idx += 1
+            extras["onecall"] = r if isinstance(r, dict) else None
+        return extras
 
     # ------------------------------------------------------------------
     # Mimir channel protocol
@@ -182,7 +210,8 @@ class WeatherChannel:
             weather = await self._get_weather(display)
             img_bytes = await asyncio.to_thread(
                 self.renderer.render,
-                weather["current"], weather["forecast"], display, width, height,
+                weather["current"], weather["forecast"]["daily"], display, width, height,
+                weather["forecast"]["hourly"], weather.get("extras"),
             )
             return {
                 "success": True,
@@ -260,7 +289,8 @@ class WeatherChannel:
             try:
                 weather = await self._get_weather(d)
                 img = await asyncio.to_thread(
-                    self.renderer.render, weather["current"], weather["forecast"], d, pw, ph
+                    self.renderer.render, weather["current"], weather["forecast"]["daily"], d, pw, ph,
+                    weather["forecast"]["hourly"], weather.get("extras"),
                 )
                 return Response(content=img, media_type="image/jpeg",
                                 headers={"Cache-Control": "no-store"})
@@ -286,7 +316,8 @@ class WeatherChannel:
             try:
                 weather = await self._get_weather(display)
                 img = await asyncio.to_thread(
-                    self.renderer.render, weather["current"], weather["forecast"], display, pw, ph
+                    self.renderer.render, weather["current"], weather["forecast"]["daily"], display, pw, ph,
+                    weather["forecast"]["hourly"], weather.get("extras"),
                 )
                 return Response(content=img, media_type="image/jpeg",
                                 headers={"Cache-Control": "no-store"})

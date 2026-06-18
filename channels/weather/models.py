@@ -20,13 +20,19 @@ class WeatherDisplay:
     units: str = "imperial"       # "imperial" | "metric"
     layout: str = "auto"          # "auto" | "landscape" | "portrait" | "square"
     theme: str = "dark"           # "dark" | "light"
+    style: str = "minimal"        # "minimal" | "modern" | "ios"
     timezone: str = "UTC"         # IANA timezone name e.g. "America/New_York"
     show_forecast: bool = True
     forecast_days: int = 3        # 1–5
+    show_hourly: bool = False
     show_humidity: bool = True
     show_wind: bool = True
     show_feels_like: bool = True
     show_high_low: bool = True
+    show_uv: bool = False
+    show_dew_point: bool = False
+    show_visibility: bool = False
+    show_air_quality: bool = False
     created_at: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
@@ -160,10 +166,20 @@ class WeatherCache:
             return True
         return time.time() - entry.get("fetched_at", 0) > ttl_minutes * 60
 
-    def set(self, lat: float, lon: float, units: str, current: Dict, forecast: List) -> None:
+    def set(self, lat: float, lon: float, units: str, current: Dict, forecast: Dict) -> None:
         self._data[self._key(lat, lon, units)] = {
             "current": current,
-            "forecast": forecast,
+            "forecast": forecast,  # {"daily": [...], "hourly": [...]}
             "fetched_at": time.time(),
         }
         self._save()
+
+    def get_forecast(self, lat: float, lon: float, units: str) -> Dict[str, Any]:
+        """Returns forecast dict, upgrading old list-format cache entries gracefully."""
+        entry = self.get(lat, lon, units)
+        if not entry:
+            return {"daily": [], "hourly": []}
+        raw = entry.get("forecast", [])
+        if isinstance(raw, list):
+            return {"daily": raw, "hourly": []}
+        return raw

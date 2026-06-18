@@ -142,8 +142,8 @@ def get_current_weather(lat: float, lon: float, api_key: str, units: str = "impe
     return resp.json()
 
 
-def get_forecast(lat: float, lon: float, api_key: str, units: str = "imperial") -> List[Dict[str, Any]]:
-    """Returns 5-day 3-hour forecast aggregated into daily summaries."""
+def get_forecast(lat: float, lon: float, api_key: str, units: str = "imperial") -> Dict[str, Any]:
+    """Returns {"daily": [...], "hourly": [...]} from the 5-day/3-hour forecast."""
     resp = _session().get(
         f"{_API_BASE}/data/2.5/forecast",
         params={"lat": lat, "lon": lon, "appid": api_key, "units": units, "cnt": 40},
@@ -151,7 +151,25 @@ def get_forecast(lat: float, lon: float, api_key: str, units: str = "imperial") 
     )
     resp.raise_for_status()
     items = resp.json().get("list", [])
-    return _aggregate_daily(items)
+    return {
+        "daily":  _aggregate_daily(items),
+        "hourly": _extract_hourly(items),
+    }
+
+
+def _extract_hourly(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Returns the next 24 hours of 3-hour slots (up to 8 entries)."""
+    result = []
+    for item in items[:8]:
+        result.append({
+            "dt_txt":      item.get("dt_txt", ""),
+            "temp":        item["main"]["temp"],
+            "feels_like":  item["main"]["feels_like"],
+            "icon":        item["weather"][0]["icon"],
+            "description": item["weather"][0]["description"],
+            "pop":         round(item.get("pop", 0) * 100),  # precipitation probability %
+        })
+    return result
 
 
 def _aggregate_daily(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -254,3 +272,63 @@ def get_google_icon_bytes(icon_code: str, theme: str, icons_dir: Path) -> Option
     except Exception as exc:
         logger.warning("[Weather] cairosvg conversion failed icon=%s: %s", google_name, exc)
         return get_icon_bytes(icon_code, icons_dir)
+
+
+# ---------------------------------------------------------------------------
+# Air quality
+
+_AQI_LABELS = {1: "Good", 2: "Fair", 3: "Moderate", 4: "Poor", 5: "Very Poor"}
+
+def get_air_quality(lat: float, lon: float, api_key: str) -> Optional[Dict[str, Any]]:
+    """Returns AQI data from OWM Air Pollution API (free tier).
+    Returns None on any failure so callers can treat it as optional."""
+    try:
+        resp = _session().get(
+            f"{_API_BASE}/data/2.5/air_pollution",
+            params={"lat": lat, "lon": lon, "appid": api_key},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        item = (data.get("list") or [{}])[0]
+        aqi = item.get("main", {}).get("aqi")
+        components = item.get("components", {})
+        return {
+            "aqi":       aqi,
+            "aqi_label": _AQI_LABELS.get(aqi, "Unknown"),
+            "pm2_5":     components.get("pm2_5"),
+            "pm10":      components.get("pm10"),
+            "o3":        components.get("o3"),
+            "no2":       components.get("no2"),
+        }
+    except Exception as exc:
+        logger.warning("[Weather] Air quality fetch failed: %s", exc)
+        return None
+
+
+# ---------------------------------------------------------------------------
+# One Call 2.5 (UV index + dew point) — optional, 401/404 = not subscribed
+
+def get_onecall_extras(lat: float, lon: float, api_key: str, units: str = "imperial") -> Optional[Dict[str, Any]]:
+    """Returns UV index and dew point from One Call 2.5 (free for many keys).
+    Returns None silently if the key doesn't have access."""
+    try:
+        resp = _session().get(
+            f"{_API_BASE}/data/2.5/onecall",
+            params={
+                "lat": lat, "lon": lon, "appid": api_key, "units": units,
+                "exclude": "minutely,hourly,daily,alerts",
+            },
+            timeout=10,
+        )
+        if resp.status_code in (401, 403, 404):
+            return None
+        resp.raise_for_status()
+        cur = resp.json().get("current", {})
+        return {
+            "uv_index":  cur.get("uvi"),
+            "dew_point": cur.get("dew_point"),
+        }
+    except Exception as exc:
+        logger.debug("[Weather] One Call extras fetch failed (non-fatal): %s", exc)
+        return None
