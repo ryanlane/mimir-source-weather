@@ -155,14 +155,21 @@ def get_forecast(lat: float, lon: float, api_key: str, units: str = "imperial") 
 
 
 def _aggregate_daily(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Collapses 3-hour slots into per-day summaries (skip today, return next 5)."""
-    import datetime
-    today = datetime.date.today().isoformat()
+    """Collapses 3-hour slots into per-day summaries (skip today, return next 5).
+
+    OWM dt_txt is UTC. We derive 'today' from the first item in the payload
+    rather than the system clock to avoid local/UTC timezone mismatches.
+    """
+    if not items:
+        return []
+
+    # First item is always the current UTC period — its date is "today" to skip.
+    current_date = items[0].get("dt_txt", "")[:10]
 
     by_day: Dict[str, List] = defaultdict(list)
     for item in items:
         date = item.get("dt_txt", "")[:10]
-        if date and date != today:
+        if date and date != current_date:
             by_day[date].append(item)
 
     daily = []
