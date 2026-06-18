@@ -76,8 +76,17 @@ class DisplayStore:
     def _load(self) -> List[WeatherDisplay]:
         if self._path.exists():
             try:
-                data = json.loads(self._path.read_text())
-                return [WeatherDisplay.from_dict(d) for d in data]
+                raw = json.loads(self._path.read_text())
+                displays = []
+                dirty = False
+                for d in raw:
+                    if not d.get("id"):
+                        d["id"] = str(uuid.uuid4())
+                        dirty = True
+                    displays.append(WeatherDisplay.from_dict(d))
+                if dirty:
+                    self._path.write_text(json.dumps([x.to_dict() for x in displays], indent=2))
+                return displays
             except Exception:
                 pass
         return []
