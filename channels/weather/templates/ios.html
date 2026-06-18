@@ -12,31 +12,54 @@
   }
 
   body {
-    background: linear-gradient(180deg, {{ sky_top }} 0%, {{ sky_bottom }} 100%);
+    background:
+      radial-gradient(120% 75% at 50% -10%, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(140% 120% at 100% 100%, rgba(8,28,84,0.28) 0%, rgba(8,28,84,0) 60%),
+      linear-gradient(180deg, {{ sky_top }} 0%, {{ sky_bottom }} 100%);
     color: #ffffff;
     position: relative;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.14);
+  }
+
+  body::before,
+  body::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  body::before {
+    background:
+      radial-gradient(90% 70% at 12% 14%, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 58%),
+      radial-gradient(85% 65% at 85% 8%, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 62%);
+    opacity: 0.85;
+  }
+  body::after {
+    background: radial-gradient(170% 115% at 50% 120%, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0) 62%);
+    opacity: 0.85;
   }
 
   /* ── GLASS CARD ── */
   .glass {
-    background: rgba(255,255,255,0.13);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.22);
-    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.08) 100%);
+    backdrop-filter: blur(24px) saturate(130%);
+    -webkit-backdrop-filter: blur(24px) saturate(130%);
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 10px 30px rgba(0,0,0,0.16);
+    border-radius: 22px;
   }
   .glass-subtle {
-    background: rgba(255,255,255,0.09);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.06) 100%);
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 20px rgba(0,0,0,0.12);
+    border-radius: 18px;
   }
 
   /* ── TEXT HELPERS ── */
   .label {
-    font-size: 0.6rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    opacity: 0.65;
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+    opacity: 0.62;
     font-weight: 500;
   }
   .value-sm  { font-size: 0.78rem; font-weight: 600; }
@@ -69,9 +92,9 @@
     font-weight: 300;
     letter-spacing: -0.02em;
   }
-  [data-layout="landscape"] .updated { font-size: 0.65rem; opacity: 0.55; }
+  [data-layout="landscape"] .updated { font-size: 0.62rem; opacity: 0.5; }
   [data-layout="landscape"] .current-card {
-    padding: clamp(14px, 2vw, 20px);
+    padding: clamp(4px, 0.8vw, 10px) 0;
     display: flex;
     align-items: center;
     gap: clamp(12px, 2vw, 20px);
@@ -95,7 +118,7 @@
     opacity: 0.8;
     font-weight: 300;
   }
-  [data-layout="landscape"] .hl { font-size: clamp(0.7rem, 1.1vw, 0.85rem); opacity: 0.6; margin-top: 2px; }
+  [data-layout="landscape"] .hl { font-size: clamp(0.7rem, 1.1vw, 0.85rem); opacity: 0.7; margin-top: 2px; }
 
   /* Right column */
   [data-layout="landscape"] .right {
@@ -131,15 +154,16 @@
 
   [data-layout="landscape"] .hourly-card { padding: 12px 14px; }
   [data-layout="landscape"] .hourly-card .card-title { margin-bottom: 8px; }
-  [data-layout="landscape"] .hourly-row { display: flex; gap: 8px; }
+  [data-layout="landscape"] .hourly-row { display: flex; gap: 0; }
   [data-layout="landscape"] .hr-slot {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
     flex: 1;
-    padding: 6px 4px;
-    border-right: 1px solid rgba(255,255,255,0.1);
+    padding: 8px 6px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    min-width: 0;
   }
   [data-layout="landscape"] .hr-slot:last-child { border-right: none; }
   [data-layout="landscape"] .hr-time { font-size: 0.6rem; opacity: 0.6; }
@@ -162,11 +186,11 @@
     font-weight: 300;
     letter-spacing: -0.02em;
   }
-  [data-layout="portrait"] .updated { font-size: 0.7rem; opacity: 0.55; margin-top: 2px; }
+  [data-layout="portrait"] .updated { font-size: 0.68rem; opacity: 0.5; margin-top: 2px; }
 
   [data-layout="portrait"] .current-card {
     width: 100%;
-    padding: clamp(16px, 4vw, 28px);
+    padding: clamp(6px, 1.5vw, 12px) 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -185,7 +209,7 @@
     line-height: 1;
   }
   [data-layout="portrait"] .condition { font-size: 1rem; opacity: 0.8; font-weight: 300; }
-  [data-layout="portrait"] .hl { font-size: 0.85rem; opacity: 0.6; }
+  [data-layout="portrait"] .hl { font-size: 0.85rem; opacity: 0.7; }
 
   [data-layout="portrait"] .details-card {
     width: 100%;
@@ -221,8 +245,8 @@
   [data-layout="portrait"] .hourly-card .card-title { margin-bottom: 8px; }
   [data-layout="portrait"] .hourly-row {
     display: flex;
-    gap: 6px;
-    overflow: hidden;
+    gap: 0;
+    overflow: clip;
   }
   [data-layout="portrait"] .hr-slot {
     display: flex;
@@ -230,8 +254,11 @@
     align-items: center;
     gap: 4px;
     flex: 1;
-    padding: 6px 4px;
+    padding: 8px 6px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    min-width: 0;
   }
+  [data-layout="portrait"] .hr-slot:last-child { border-right: none; }
   [data-layout="portrait"] .hr-time { font-size: 0.6rem; opacity: 0.6; }
   [data-layout="portrait"] .hr-slot img { width: 24px; height: 24px; object-fit: contain; }
   [data-layout="portrait"] .hr-temp { font-size: 0.75rem; font-weight: 600; }
@@ -247,10 +274,10 @@
   }
   [data-layout="square"] .location-row { display: flex; justify-content: space-between; align-items: flex-start; }
   [data-layout="square"] .city { font-size: clamp(0.9rem, 2.8vw, 1.3rem); font-weight: 300; }
-  [data-layout="square"] .updated { font-size: 0.6rem; opacity: 0.55; margin-top: 2px; }
+  [data-layout="square"] .updated { font-size: 0.6rem; opacity: 0.5; margin-top: 2px; }
 
   [data-layout="square"] .current-card {
-    padding: clamp(12px, 2.5vw, 18px);
+    padding: clamp(6px, 1.2vw, 12px) 0;
     display: flex;
     align-items: center;
     gap: clamp(10px, 2vw, 16px);
@@ -268,7 +295,7 @@
     letter-spacing: -2px;
   }
   [data-layout="square"] .condition { font-size: 0.75rem; opacity: 0.8; font-weight: 300; }
-  [data-layout="square"] .hl { font-size: 0.68rem; opacity: 0.6; margin-top: 1px; }
+  [data-layout="square"] .hl { font-size: 0.68rem; opacity: 0.7; margin-top: 1px; }
 
   [data-layout="square"] .details-card {
     padding: 10px 14px;
@@ -291,16 +318,16 @@
     border-right: 1px solid rgba(255,255,255,0.1);
   }
   [data-layout="square"] .fc-day:last-child { border-right: none; }
-  [data-layout="square"] .fc-day-name { font-size: 0.6rem; opacity: 0.65; text-transform: uppercase; }
+  [data-layout="square"] .fc-day-name { font-size: 0.62rem; opacity: 0.72; text-transform: none; }
   [data-layout="square"] .fc-day img { width: 22px; height: 22px; object-fit: contain; }
   [data-layout="square"] .fc-hi { font-size: 0.72rem; font-weight: 600; }
   [data-layout="square"] .fc-lo { font-size: 0.65rem; opacity: 0.5; }
 
   .card-title {
     font-size: 0.58rem;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    opacity: 0.55;
+    opacity: 0.62;
     font-weight: 600;
   }
 </style>
@@ -313,10 +340,10 @@
   <div class="left">
     <div class="location-row">
       <div class="city">{{ city }}{% if country %}, {{ country }}{% endif %}</div>
-      <div class="updated">Updated {{ updated }}</div>
+      <div class="updated">{{ updated }}</div>
     </div>
 
-    <div class="current-card glass">
+    <div class="current-card">
       <div class="icon-wrap">{% if icon %}<img src="{{ icon }}" alt="">{% endif %}</div>
       <div class="temp-block">
         <div class="temp">{{ temp }}</div>
@@ -373,10 +400,10 @@
   <!-- ─── PORTRAIT ─── -->
   <div class="location-row">
     <div class="city">{{ city }}{% if country %}, {{ country }}{% endif %}</div>
-    <div class="updated">Updated {{ updated }}</div>
+    <div class="updated">{{ updated }}</div>
   </div>
 
-  <div class="current-card glass">
+  <div class="current-card">
     <div class="icon-wrap">{% if icon %}<img src="{{ icon }}" alt="">{% endif %}</div>
     <div class="temp">{{ temp }}</div>
     <div class="condition">{{ condition }}</div>
@@ -429,11 +456,11 @@
   <div class="location-row">
     <div>
       <div class="city">{{ city }}{% if country %}, {{ country }}{% endif %}</div>
-      <div class="updated">Updated {{ updated }}</div>
+      <div class="updated">{{ updated }}</div>
     </div>
   </div>
 
-  <div class="current-card glass">
+  <div class="current-card">
     <div class="icon-wrap">{% if icon %}<img src="{{ icon }}" alt="">{% endif %}</div>
     <div>
       <div class="temp">{{ temp }}</div>

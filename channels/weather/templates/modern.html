@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-theme="{{ theme }}" data-layout="{{ layout }}">
+<html data-layout="{{ layout }}">
 <head>
 <meta charset="utf-8">
 <style>
@@ -8,479 +8,411 @@
     width: {{ width }}px;
     height: {{ height }}px;
     overflow: hidden;
-    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background: #06080f;
+    color: #fff;
+    font-family: 'Arial Black', 'Franklin Gothic Heavy', 'Haettenschweiler', Impact, Arial, sans-serif;
   }
 
-  :root {
-    --bg:      #0a0d14;
-    --panel:   #12161f;
-    --panel2:  #1a1f2e;
-    --border:  rgba(255,255,255,0.07);
-    --text:    #e8ecf4;
-    --sub:     rgba(232,236,244,0.5);
-    --dim:     rgba(232,236,244,0.28);
-    --accent:  #5b8af8;
-    --accent2: #7ecfff;
-    --pill-bg: rgba(91,138,248,0.14);
-    --pill-bd: rgba(91,138,248,0.3);
-    --accent-bar: #5b8af8;
-  }
-  [data-theme="light"] {
-    --bg:      #eef1f7;
-    --panel:   #ffffff;
-    --panel2:  #f4f6fb;
-    --border:  rgba(0,0,0,0.07);
-    --text:    #1a1f2e;
-    --sub:     rgba(26,31,46,0.55);
-    --dim:     rgba(26,31,46,0.35);
-    --accent:  #3060e0;
-    --accent2: #0097c7;
-    --pill-bg: rgba(48,96,224,0.08);
-    --pill-bd: rgba(48,96,224,0.25);
-    --accent-bar: #3060e0;
-  }
-
-  body { background: var(--bg); color: var(--text); }
-
-  /* ── LANDSCAPE ── */
-  [data-layout="landscape"] .wrap {
-    display: grid;
-    grid-template-columns: 6px 1fr;
-    height: 100%;
-  }
-  [data-layout="landscape"] .accent-bar {
-    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 100%);
-    border-radius: 0 3px 3px 0;
-  }
-  [data-layout="landscape"] .content {
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    padding: clamp(14px, 2.5vw, 24px);
-    gap: clamp(10px, 1.8vw, 18px);
-    overflow: hidden;
-  }
-  [data-layout="landscape"] .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-  }
-  [data-layout="landscape"] .location { display: flex; flex-direction: column; gap: 1px; }
-  [data-layout="landscape"] .city { font-size: clamp(1rem, 2.2vw, 1.4rem); font-weight: 600; letter-spacing: -0.02em; }
-  [data-layout="landscape"] .updated { font-size: 0.65rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
-
-  [data-layout="landscape"] .current {
-    display: flex;
-    align-items: center;
-    gap: clamp(16px, 3vw, 32px);
-  }
-  [data-layout="landscape"] .icon-wrap {
+  .wrap {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  [data-layout="landscape"] .icon-ghost {
-    position: absolute;
-    opacity: 0.07;
-    filter: blur(2px);
-    transform: scale(1.5);
-    pointer-events: none;
-  }
-  [data-layout="landscape"] .icon-ghost img,
-  [data-layout="landscape"] .icon-wrap > img {
-    width: clamp(64px, 10vw, 96px);
-    height: clamp(64px, 10vw, 96px);
-    object-fit: contain;
-  }
-  [data-layout="landscape"] .temp-group { display: flex; flex-direction: column; gap: 3px; }
-  [data-layout="landscape"] .temp {
-    font-size: clamp(3rem, 7vw, 5.5rem);
-    font-weight: 100;
-    letter-spacing: -3px;
-    line-height: 1;
-    background: linear-gradient(135deg, var(--text) 60%, var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  [data-layout="landscape"] .condition-pill {
-    display: inline-flex;
-    align-items: center;
-    background: var(--pill-bg);
-    border: 1px solid var(--pill-bd);
-    border-radius: 20px;
-    padding: 4px 10px;
-    font-size: clamp(0.65rem, 1.1vw, 0.8rem);
-    color: var(--accent2);
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    align-self: flex-start;
-  }
-  [data-layout="landscape"] .hl { font-size: 0.75rem; color: var(--dim); }
-
-  [data-layout="landscape"] .details {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    align-self: center;
-    flex: 1;
-  }
-  [data-layout="landscape"] .detail-chip {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  [data-layout="landscape"] .detail-label {
-    font-size: 0.58rem;
-    color: var(--dim);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    white-space: nowrap;
-  }
-  [data-layout="landscape"] .detail-value { font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
-
-  [data-layout="landscape"] .bottom {
-    display: flex;
-    gap: 10px;
-  }
-  [data-layout="landscape"] .forecast-row {
-    display: flex;
-    gap: 6px;
-    flex: 1;
-  }
-  [data-layout="landscape"] .fc-day {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 8px 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    flex: 1;
-  }
-  [data-layout="landscape"] .fc-day-label { font-size: 0.58rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
-  [data-layout="landscape"] .fc-day img { width: 26px; height: 26px; object-fit: contain; }
-  [data-layout="landscape"] .fc-hi { font-size: 0.78rem; font-weight: 700; }
-  [data-layout="landscape"] .fc-lo { font-size: 0.68rem; color: var(--dim); }
-
-  [data-layout="landscape"] .hourly-row {
-    display: flex;
-    gap: 6px;
-    flex: 1;
-  }
-  [data-layout="landscape"] .hr-slot {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 7px 6px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    flex: 1;
-  }
-  [data-layout="landscape"] .hr-time { font-size: 0.58rem; color: var(--dim); }
-  [data-layout="landscape"] .hr-slot img { width: 22px; height: 22px; object-fit: contain; }
-  [data-layout="landscape"] .hr-temp { font-size: 0.72rem; font-weight: 700; }
-  [data-layout="landscape"] .hr-pop { font-size: 0.58rem; color: var(--accent2); }
-
-  /* ── PORTRAIT ── */
-  [data-layout="portrait"] .wrap {
-    display: grid;
-    grid-template-rows: 6px 1fr;
+    width: 100%;
     height: 100%;
-  }
-  [data-layout="portrait"] .accent-bar {
-    background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
-  }
-  [data-layout="portrait"] .content {
-    display: flex;
-    flex-direction: column;
-    padding: clamp(16px, 4vw, 28px);
-    gap: clamp(12px, 2.5vw, 20px);
     overflow: hidden;
   }
-  [data-layout="portrait"] .header { text-align: center; }
-  [data-layout="portrait"] .city { font-size: clamp(1rem, 3.5vw, 1.5rem); font-weight: 600; }
-  [data-layout="portrait"] .updated { font-size: 0.65rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
 
-  [data-layout="portrait"] .current {
+  /* ── DIAGONAL GRADIENT BLOCK ── */
+  .slice {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(135deg, #6600CC 0%, #FF0066 100%);
+  }
+
+  /* ── SVG ACCENT RULE ── */
+  .rule {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* ── CURRENT CONDITIONS — rotated -45° ── */
+  .current {
+    position: absolute;
+    z-index: 3;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 0;
+    white-space: nowrap;
+    text-align: center;
   }
-  [data-layout="portrait"] .icon-wrap { position: relative; }
-  [data-layout="portrait"] .icon-ghost {
-    position: absolute;
-    opacity: 0.06;
-    filter: blur(4px);
-    transform: scale(1.8) translate(-14%, -14%);
-    pointer-events: none;
-  }
-  [data-layout="portrait"] .icon-ghost img,
-  [data-layout="portrait"] .icon-wrap > img {
-    width:  clamp(80px, 24vw, 130px);
-    height: clamp(80px, 24vw, 130px);
-    object-fit: contain;
-  }
-  [data-layout="portrait"] .temp {
-    font-size: clamp(3.5rem, 16vw, 7rem);
-    font-weight: 100;
-    letter-spacing: -4px;
-    background: linear-gradient(135deg, var(--text) 60%, var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  [data-layout="portrait"] .condition-pill {
-    display: inline-flex;
-    background: var(--pill-bg);
-    border: 1px solid var(--pill-bd);
-    border-radius: 20px;
-    padding: 5px 14px;
-    font-size: 0.8rem;
-    color: var(--accent2);
-    font-weight: 500;
-    letter-spacing: 0.04em;
-  }
-  [data-layout="portrait"] .hl { font-size: 0.75rem; color: var(--dim); }
 
-  [data-layout="portrait"] .details {
+  .big-temp {
+    line-height: 1;
+    letter-spacing: -0.05em;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 60px rgba(255,255,255,0.4);
+  }
+  .city-label {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.75);
+  }
+  .cond-label {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.65);
+  }
+  .hl-label {
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.5);
+  }
+  .wx-icon {
+    object-fit: contain;
+    filter: drop-shadow(0 0 14px rgba(255,255,255,0.45));
+  }
+
+  /* ── LOWER INFO SECTION ── */
+  .info {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Section heading */
+  .sec-head {
+    font-size: 0.55rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.28);
+    margin-bottom: 5px;
+  }
+
+  /* Details */
+  .details-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 5px 12px;
   }
-  [data-layout="portrait"] .detail-chip {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 14px;
+  .det { display: flex; flex-direction: column; gap: 1px; }
+  .det-lbl {
+    font-size: 0.52rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.3);
   }
-  [data-layout="portrait"] .detail-label { font-size: 0.6rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
-  [data-layout="portrait"] .detail-value { font-size: 0.9rem; font-weight: 600; margin-top: 2px; }
+  .det-val {
+    font-size: 0.82rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
 
-  [data-layout="portrait"] .forecast-row {
-    display: flex;
-    gap: 6px;
-  }
-  [data-layout="portrait"] .fc-day {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    flex: 1;
-  }
-  [data-layout="portrait"] .fc-day-label { font-size: 0.58rem; color: var(--dim); text-transform: uppercase; }
-  [data-layout="portrait"] .fc-day img { width: 24px; height: 24px; object-fit: contain; }
-  [data-layout="portrait"] .fc-hi { font-size: 0.78rem; font-weight: 700; }
-  [data-layout="portrait"] .fc-lo { font-size: 0.68rem; color: var(--dim); }
-
-  [data-layout="portrait"] .hourly-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-  }
-  [data-layout="portrait"] .hr-slot {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 8px 4px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-  }
-  [data-layout="portrait"] .hr-time { font-size: 0.58rem; color: var(--dim); }
-  [data-layout="portrait"] .hr-slot img { width: 22px; height: 22px; object-fit: contain; }
-  [data-layout="portrait"] .hr-temp { font-size: 0.72rem; font-weight: 700; }
-  [data-layout="portrait"] .hr-pop { font-size: 0.58rem; color: var(--accent2); }
-
-  /* ── SQUARE ── */
-  [data-layout="square"] .wrap {
-    display: grid;
-    grid-template-columns: 6px 1fr;
-    height: 100%;
-  }
-  [data-layout="square"] .accent-bar {
-    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 100%);
-    border-radius: 0 3px 3px 0;
-  }
-  [data-layout="square"] .content {
-    display: grid;
-    grid-template-rows: auto 1fr auto auto;
-    padding: clamp(12px, 2.5vw, 20px);
-    gap: clamp(8px, 1.5vw, 14px);
-    overflow: hidden;
-  }
-  [data-layout="square"] .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-  [data-layout="square"] .city { font-size: clamp(0.8rem, 2.5vw, 1.1rem); font-weight: 600; }
-  [data-layout="square"] .updated { font-size: 0.6rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
-  [data-layout="square"] .current {
-    display: flex;
-    align-items: center;
-    gap: clamp(8px, 2vw, 16px);
-  }
-  [data-layout="square"] .icon-wrap { position: relative; }
-  [data-layout="square"] .icon-ghost {
-    position: absolute;
-    opacity: 0.06;
-    filter: blur(3px);
-    transform: scale(1.6) translate(-12%, -12%);
-    pointer-events: none;
-  }
-  [data-layout="square"] .icon-ghost img,
-  [data-layout="square"] .icon-wrap > img {
-    width:  clamp(50px, 11vw, 80px);
-    height: clamp(50px, 11vw, 80px);
-    object-fit: contain;
-  }
-  [data-layout="square"] .temp {
-    font-size: clamp(2.5rem, 8vw, 4.5rem);
-    font-weight: 100;
-    letter-spacing: -2px;
-    background: linear-gradient(135deg, var(--text) 60%, var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  [data-layout="square"] .condition-pill {
-    display: inline-flex;
-    background: var(--pill-bg);
-    border: 1px solid var(--pill-bd);
-    border-radius: 16px;
-    padding: 3px 9px;
-    font-size: 0.65rem;
-    color: var(--accent2);
-    font-weight: 500;
-    letter-spacing: 0.04em;
-  }
-  [data-layout="square"] .hl { font-size: 0.65rem; color: var(--dim); margin-top: 2px; }
-  [data-layout="square"] .details {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-    gap: 6px;
-  }
-  [data-layout="square"] .detail-chip {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 8px;
-  }
-  [data-layout="square"] .detail-label { font-size: 0.55rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
-  [data-layout="square"] .detail-value { font-size: 0.75rem; font-weight: 600; margin-top: 1px; }
-  [data-layout="square"] .forecast-row {
+  /* Forecast */
+  .fc-row {
     display: flex;
     gap: 5px;
   }
-  [data-layout="square"] .fc-day {
-    background: var(--panel);
-    border: 1px solid var(--border);
+  .fc-card {
+    flex: 1;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 8px;
-    padding: 6px 8px;
+    padding: 6px 5px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
-    flex: 1;
+    gap: 2px;
+    text-align: center;
   }
-  [data-layout="square"] .fc-day-label { font-size: 0.55rem; color: var(--dim); text-transform: uppercase; }
-  [data-layout="square"] .fc-day img { width: 20px; height: 20px; object-fit: contain; }
-  [data-layout="square"] .fc-hi { font-size: 0.7rem; font-weight: 700; }
-  [data-layout="square"] .fc-lo { font-size: 0.62rem; color: var(--dim); }
+  .fc-day-name {
+    font-size: 0.55rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.35);
+  }
+  .fc-card img { width: 20px; height: 20px; object-fit: contain; }
+  .fc-hi { font-size: 0.75rem; font-weight: 900; }
+  .fc-lo { font-size: 0.65rem; font-weight: 900; color: rgba(255,255,255,0.35); }
+
+  /* Hourly */
+  .hr-row { display: flex; gap: 4px; }
+  .hr-card {
+    flex: 1;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 6px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .hr-time {
+    font-size: 0.52rem;
+    font-weight: 900;
+    color: rgba(255,255,255,0.35);
+  }
+  .hr-card img { width: 18px; height: 18px; object-fit: contain; }
+  .hr-temp { font-size: 0.72rem; font-weight: 900; }
+  .hr-pop { font-size: 0.52rem; font-weight: 900; color: #7ecfff; }
+
+  .footer-text {
+    font-size: 0.52rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: rgba(255,255,255,0.2);
+    margin-top: auto;
+    padding-top: 4px;
+  }
+
+  .spacer { flex: 1; }
+
+  /* ════════════ LANDSCAPE ════════════ */
+  /* True 45°: Δx = Δy = height → from (70%W, 0) to (10%W, H) for 800×480 */
+  [data-layout="landscape"] .slice {
+    clip-path: polygon(0 0, 70% 0, 10% 100%, 0 100%);
+  }
+  [data-layout="landscape"] .current {
+    top: 50%;
+    left: 19%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    gap: 2px;
+  }
+  [data-layout="landscape"] .big-temp   { font-size: clamp(3.5rem, 9vw, 6.5rem); }
+  [data-layout="landscape"] .city-label { font-size: clamp(0.75rem, 1.6vw, 1.1rem); }
+  [data-layout="landscape"] .cond-label { font-size: clamp(0.6rem, 1.2vw, 0.85rem); }
+  [data-layout="landscape"] .hl-label   { font-size: clamp(0.6rem, 1.1vw, 0.8rem); }
+  [data-layout="landscape"] .wx-icon    { width: clamp(50px, 7vw, 72px); height: clamp(50px, 7vw, 72px); }
+  [data-layout="landscape"] .info {
+    top: 14px;
+    left: 44%;
+    right: 16px;
+    bottom: 14px;
+    gap: 10px;
+  }
+
+  /* ════════════ PORTRAIT ════════════ */
+  /* True 45° in portrait (480×800): "/" from (100%, 20%) to (0%, 80%)
+     Δx = W=480, Δy = 0.60H = 480 ✓ */
+  [data-layout="portrait"] .slice {
+    clip-path: polygon(0 0, 100% 0, 100% 20%, 0% 80%);
+  }
+  [data-layout="portrait"] .current {
+    top: 28%;
+    left: 40%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    gap: 2px;
+  }
+  [data-layout="portrait"] .big-temp   { font-size: clamp(3rem, 14vw, 6rem); }
+  [data-layout="portrait"] .city-label { font-size: clamp(0.75rem, 3vw, 1.1rem); }
+  [data-layout="portrait"] .cond-label { font-size: clamp(0.6rem, 2vw, 0.85rem); }
+  [data-layout="portrait"] .hl-label   { font-size: clamp(0.6rem, 2vw, 0.8rem); }
+  [data-layout="portrait"] .wx-icon    { width: clamp(48px, 13vw, 80px); height: clamp(48px, 13vw, 80px); }
+  [data-layout="portrait"] .info {
+    top: 50%;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    gap: 10px;
+  }
+
+  /* ════════════ SQUARE ════════════ */
+  /* True 45° "\" in square (600×600): from (70%W, 0) to (0%, 70%H)
+     Δx = 70%*600 = 420, Δy = 70%*600 = 420 ✓ */
+  [data-layout="square"] .slice {
+    clip-path: polygon(0 0, 70% 0, 0% 70%);
+  }
+  [data-layout="square"] .current {
+    top: 22%;
+    left: 22%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    gap: 1px;
+  }
+  [data-layout="square"] .big-temp   { font-size: clamp(2.5rem, 8vw, 4rem); }
+  [data-layout="square"] .city-label { font-size: clamp(0.65rem, 2vw, 0.9rem); }
+  [data-layout="square"] .cond-label { font-size: clamp(0.55rem, 1.5vw, 0.75rem); }
+  [data-layout="square"] .hl-label   { font-size: clamp(0.55rem, 1.5vw, 0.72rem); }
+  [data-layout="square"] .wx-icon    { width: clamp(36px, 7vw, 56px); height: clamp(36px, 7vw, 56px); }
+  [data-layout="square"] .info {
+    top: 14px;
+    left: 36%;
+    right: 14px;
+    bottom: 48%;
+    gap: 8px;
+  }
+  /* Square needs a second info section for forecast/hourly in the bottom half */
+  [data-layout="square"] .info-bottom {
+    position: absolute;
+    z-index: 2;
+    top: 54%;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="accent-bar"></div>
-  <div class="content">
 
-    <!-- HEADER: location -->
-    <div class="header">
-      <div class="location">
-        <div class="city">{{ city }}{% if country %}, {{ country }}{% endif %}</div>
-        <div class="updated">Updated {{ updated }}</div>
-      </div>
-      {% if layout == "landscape" %}
-      <div class="details">
+  <!-- DIAGONAL COLOR SLICE -->
+  <div class="slice"></div>
+
+  <!-- SVG DIAGONAL ACCENT LINE -->
+  {% if layout == "landscape" %}
+  <svg class="rule" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%"   stop-color="#fff" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0.05"/>
+      </linearGradient>
+    </defs>
+    <line x1="{{ (width * 0.70)|int }}" y1="0"
+          x2="{{ (width * 0.10)|int }}" y2="{{ height }}"
+          stroke="url(#lg)" stroke-width="2.5"/>
+    <!-- neon glow duplicate -->
+    <line x1="{{ (width * 0.70)|int }}" y1="0"
+          x2="{{ (width * 0.10)|int }}" y2="{{ height }}"
+          stroke="rgba(200,100,255,0.35)" stroke-width="8" filter="url(#glow)"/>
+    <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </svg>
+
+  {% elif layout == "portrait" %}
+  <svg class="rule" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#fff" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0.05"/>
+      </linearGradient>
+      <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <line x1="{{ width }}" y1="{{ (height * 0.20)|int }}"
+          x2="0" y2="{{ (height * 0.80)|int }}"
+          stroke="url(#lg)" stroke-width="2.5"/>
+    <line x1="{{ width }}" y1="{{ (height * 0.20)|int }}"
+          x2="0" y2="{{ (height * 0.80)|int }}"
+          stroke="rgba(200,100,255,0.35)" stroke-width="8" filter="url(#glow)"/>
+  </svg>
+
+  {% else %}{# square #}
+  <svg class="rule" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%"   stop-color="#fff" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0.05"/>
+      </linearGradient>
+      <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <line x1="{{ (width * 0.70)|int }}" y1="0"
+          x2="0" y2="{{ (height * 0.70)|int }}"
+          stroke="url(#lg)" stroke-width="2.5"/>
+    <line x1="{{ (width * 0.70)|int }}" y1="0"
+          x2="0" y2="{{ (height * 0.70)|int }}"
+          stroke="rgba(200,100,255,0.35)" stroke-width="8" filter="url(#glow)"/>
+  </svg>
+  {% endif %}
+
+  <!-- CURRENT CONDITIONS (rotated -45°) -->
+  <div class="current">
+    {% if icon %}<img class="wx-icon" src="{{ icon }}" alt="">{% endif %}
+    <div class="big-temp">{{ temp }}</div>
+    <div class="city-label">{{ city }}{% if country %} · {{ country }}{% endif %}</div>
+    <div class="cond-label">{{ condition }}</div>
+    {% if high and low %}<div class="hl-label">{{ high }} / {{ low }}</div>{% endif %}
+  </div>
+
+  <!-- INFO: details + forecast + hourly -->
+  <div class="info">
+
+    {% if details %}
+    <div>
+      <div class="sec-head">Conditions</div>
+      <div class="details-grid">
         {% for d in details %}
-        <div class="detail-chip">
-          <div class="detail-label">{{ d.label }}</div>
-          <div class="detail-value">{{ d.value }}</div>
+        <div class="det">
+          <div class="det-lbl">{{ d.label }}</div>
+          <div class="det-val">{{ d.value }}</div>
         </div>
         {% endfor %}
       </div>
-      {% endif %}
-    </div>
-
-    <!-- CURRENT CONDITIONS -->
-    <div class="current">
-      <div class="icon-wrap">
-        {% if icon %}<div class="icon-ghost"><img src="{{ icon }}" alt=""></div>{% endif %}
-        {% if icon %}<img src="{{ icon }}" alt="">{% endif %}
-      </div>
-      <div>
-        <div class="temp">{{ temp }}</div>
-        <div class="condition-pill">{{ condition }}</div>
-        {% if high and low %}<div class="hl">{{ high }} / {{ low }}</div>{% endif %}
-      </div>
-    </div>
-
-    {% if layout != "landscape" and details %}
-    <div class="details">
-      {% for d in details %}
-      <div class="detail-chip">
-        <div class="detail-label">{{ d.label }}</div>
-        <div class="detail-value">{{ d.value }}</div>
-      </div>
-      {% endfor %}
     </div>
     {% endif %}
 
-    <!-- HOURLY -->
     {% if hourly %}
-    <div class="hourly-row">
-      {% for h in hourly %}
-      <div class="hr-slot">
-        <div class="hr-time">{{ h.time }}</div>
-        {% if h.icon %}<img src="{{ h.icon }}" alt="">{% endif %}
-        <div class="hr-temp">{{ h.temp }}</div>
-        {% if h.pop > 0 %}<div class="hr-pop">{{ (h.pop * 100)|int }}%</div>{% endif %}
+    <div>
+      <div class="sec-head">Hourly</div>
+      <div class="hr-row">
+        {% for h in hourly %}
+        <div class="hr-card">
+          <div class="hr-time">{{ h.time }}</div>
+          {% if h.icon %}<img src="{{ h.icon }}" alt="">{% endif %}
+          <div class="hr-temp">{{ h.temp }}</div>
+          {% if h.pop > 0 %}<div class="hr-pop">{{ (h.pop * 100)|int }}%</div>{% endif %}
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
     {% endif %}
 
-    <!-- FORECAST -->
-    {% if forecast %}
-    <div class="forecast-row">
+    {% if forecast and layout != "square" %}
+    <div>
+      <div class="sec-head">{{ forecast|length }}-Day Forecast</div>
+      <div class="fc-row">
+        {% for day in forecast %}
+        <div class="fc-card">
+          <div class="fc-day-name">{{ day.day }}</div>
+          {% if day.icon %}<img src="{{ day.icon }}" alt="">{% endif %}
+          <div class="fc-hi">{{ day.high }}</div>
+          <div class="fc-lo">{{ day.low }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="footer-text">Updated {{ updated }}</div>
+  </div>
+
+  <!-- SQUARE ONLY: second info zone for forecast in bottom half -->
+  {% if layout == "square" and forecast %}
+  <div class="info-bottom">
+    <div class="sec-head">{{ forecast|length }}-Day Forecast</div>
+    <div class="fc-row">
       {% for day in forecast %}
-      <div class="fc-day">
-        <div class="fc-day-label">{{ day.day }}</div>
+      <div class="fc-card">
+        <div class="fc-day-name">{{ day.day }}</div>
         {% if day.icon %}<img src="{{ day.icon }}" alt="">{% endif %}
         <div class="fc-hi">{{ day.high }}</div>
         <div class="fc-lo">{{ day.low }}</div>
       </div>
       {% endfor %}
     </div>
-    {% endif %}
-
   </div>
+  {% endif %}
+
 </div>
 </body>
 </html>
