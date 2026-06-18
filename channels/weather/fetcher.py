@@ -156,10 +156,13 @@ def get_forecast(lat: float, lon: float, api_key: str, units: str = "imperial") 
 
 def _aggregate_daily(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Collapses 3-hour slots into per-day summaries (skip today, return next 5)."""
+    import datetime
+    today = datetime.date.today().isoformat()
+
     by_day: Dict[str, List] = defaultdict(list)
     for item in items:
         date = item.get("dt_txt", "")[:10]
-        if date:
+        if date and date != today:
             by_day[date].append(item)
 
     daily = []
@@ -175,8 +178,7 @@ def _aggregate_daily(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "description": midday["weather"][0]["description"],
         })
 
-    # daily[0] is today (partially elapsed) — skip it, return next 5
-    return daily[1:6]
+    return daily[:5]
 
 
 # ---------------------------------------------------------------------------
