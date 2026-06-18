@@ -92,13 +92,13 @@ class WeatherRenderer:
             self._font_cache[size] = ImageFont.load_default()
         return self._font_cache[size]
 
-    def _load_icon(self, icon_code: str, size: int) -> Optional[Any]:
-        key = f"{icon_code}_{size}"
+    def _load_icon(self, icon_code: str, size: int, theme: str = "dark") -> Optional[Any]:
+        key = f"{icon_code}_{size}_{theme}"
         if key in self._icon_cache:
             return self._icon_cache[key]
 
         from . import fetcher as _f
-        raw = _f.get_icon_bytes(icon_code, self.icons_dir)
+        raw = _f.get_google_icon_bytes(icon_code, theme, self.icons_dir)
         img = None
         if raw:
             try:
@@ -108,8 +108,8 @@ class WeatherRenderer:
         self._icon_cache[key] = img
         return img
 
-    def _paste_icon(self, canvas: Any, icon_code: str, x: int, y: int, size: int) -> None:
-        img = self._load_icon(icon_code, size)
+    def _paste_icon(self, canvas: Any, icon_code: str, x: int, y: int, size: int, theme: str = "dark") -> None:
+        img = self._load_icon(icon_code, size, theme)
         if img:
             canvas.paste(img, (x, y), img)
 
@@ -187,7 +187,7 @@ class WeatherRenderer:
 
         icon_size = min(H // 3, split // 4)
         icon_y = pad + fs_city + pad // 2
-        self._paste_icon(canvas, current["weather"][0]["icon"], pad, icon_y, icon_size)
+        self._paste_icon(canvas, current["weather"][0]["icon"], pad, icon_y, icon_size, cfg.theme)
 
         # Temperature beside icon
         temp_str = self._temp(current["main"]["temp"], cfg.units)
@@ -235,7 +235,7 @@ class WeatherRenderer:
                 fy = pad
                 self._draw_center(draw, self._day_abbr(day["date"]), cx, fy, self._font(fs_fday), t["secondary"])
                 fy += fs_fday + 4
-                self._paste_icon(canvas, day["icon"], cx - icon_sm // 2, fy, icon_sm)
+                self._paste_icon(canvas, day["icon"], cx - icon_sm // 2, fy, icon_sm, cfg.theme)
                 fy += icon_sm + 4
                 self._draw_center(draw, self._temp(day["temp_max"], cfg.units), cx, fy, self._font(fs_ftemp), t["text"])
                 fy += fs_ftemp + 2
@@ -265,7 +265,7 @@ class WeatherRenderer:
         cy += fs_city + pad // 3          # tighter gap: was + pad
 
         icon_size = min(W // 4, H // 9, 96)  # smaller + capped: was min(W//3, H//8)
-        self._paste_icon(canvas, current["weather"][0]["icon"], W // 2 - icon_size // 2, cy, icon_size)
+        self._paste_icon(canvas, current["weather"][0]["icon"], W // 2 - icon_size // 2, cy, icon_size, cfg.theme)
         cy += icon_size + pad // 3
 
         temp_str = self._temp(current["main"]["temp"], cfg.units)
@@ -307,7 +307,7 @@ class WeatherRenderer:
                 fy = cy + pad // 3
                 self._draw_center(draw, self._day_abbr(day["date"]), cx, fy, self._font(fs_fday), t["secondary"])
                 fy += fs_fday + 4
-                self._paste_icon(canvas, day["icon"], cx - icon_sm // 2, fy, icon_sm)
+                self._paste_icon(canvas, day["icon"], cx - icon_sm // 2, fy, icon_sm, cfg.theme)
                 fy += icon_sm + 4
                 self._draw_center(draw, self._temp(day["temp_max"], cfg.units), cx, fy, self._font(fs_fday), t["text"])
                 fy += fs_fday + 2
@@ -337,7 +337,7 @@ class WeatherRenderer:
         # Icon + temp side-by-side, smaller icon so temp has room
         icon_size = min(W // 5, H // 7)
         icon_x = W // 4 - icon_size // 2
-        self._paste_icon(canvas, current["weather"][0]["icon"], icon_x, cy, icon_size)
+        self._paste_icon(canvas, current["weather"][0]["icon"], icon_x, cy, icon_size, cfg.theme)
 
         temp_str = self._temp(current["main"]["temp"], cfg.units)
         tf = self._font(fs_temp)
@@ -388,7 +388,7 @@ class WeatherRenderer:
                 fy = cy + pad // 4
                 self._draw_center(draw, self._day_abbr(day["date"]), cx, fy, self._font(fs_fday), t["secondary"])
                 fy += fs_fday + 3
-                self._paste_icon(canvas, day["icon"], cx - icon_sm // 2, fy, icon_sm)
+                self._paste_icon(canvas, day["icon"], cx - icon_sm // 2, fy, icon_sm, cfg.theme)
                 fy += icon_sm + 3
                 self._draw_center(draw, self._temp(day["temp_max"], cfg.units), cx, fy, self._font(fs_fday), t["text"])
                 fy += fs_fday + 2
