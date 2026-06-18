@@ -172,10 +172,10 @@ class WeatherHtmlRenderer:
                 except Exception:
                     label = "--"
                 hourly_items.append({
-                    "time":  label,
-                    "icon":  self._icon_uri(slot["icon"], theme),
-                    "temp":  self._temp(slot["temp"], units),
-                    "pop":   slot.get("pop", 0),
+                    "time":   label,
+                    "icon":   self._icon_uri(slot["icon"], theme),
+                    "temp":   self._temp(slot["temp"], units),
+                    "precip": slot.get("pop", 0),
                 })
 
         # Daily forecast

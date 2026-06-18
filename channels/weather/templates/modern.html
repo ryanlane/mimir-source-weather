@@ -370,7 +370,7 @@
           <div class="hr-time">{{ h.time }}</div>
           {% if h.icon %}<img src="{{ h.icon }}" alt="">{% endif %}
           <div class="hr-temp">{{ h.temp }}</div>
-          {% if h.pop > 0 %}<div class="hr-pop">{{ (h.pop * 100)|int }}%</div>{% endif %}
+          {% if h.precip > 0 %}<div class="hr-pop">{{ (h.precip * 100)|int }}%</div>{% endif %}
         </div>
         {% endfor %}
       </div>

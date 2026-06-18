@@ -52,6 +52,7 @@ class WeatherChannel:
         self.renderer = WeatherRenderer(self.data_dir / "icons")
         self.web_renderer = WeatherHtmlRenderer(self.data_dir / "icons")
         self.last_error: Optional[str] = None
+        self.last_html_error: Optional[str] = None
 
         logger.info("[Weather] Initialized at %s, %d displays", self.channel_dir, len(self.store.all()))
 
@@ -152,14 +153,28 @@ class WeatherChannel:
 
         if display.style in HTML_STYLES:
             try:
-                return await self.web_renderer.render(
+                result = await self.web_renderer.render(
                     current, daily, display, width, height, hourly, extras
                 )
+                self.last_html_error = None
+                return result
             except Exception as exc:
-                logger.warning("[Weather] HTML render failed, falling back to PIL: %s", exc)
+                self.last_html_error = f"{type(exc).__name__}: {exc}"
+                logger.error(
+                    "[Weather] HTML render failed for style '%s' — falling back to PIL minimal. "
+                    "Error: %s. "
+                    "To enable HTML styles: pip install playwright jinja2 && playwright install chromium",
+                    display.style, exc,
+                )
+
+        # PIL fallback: strip '-web' suffix so PIL renderer gets a known style name
+        pil_display = display
+        if display.style in HTML_STYLES:
+            from dataclasses import replace
+            pil_display = replace(display, style="minimal")
 
         return await asyncio.to_thread(
-            self.renderer.render, current, daily, display, width, height, hourly, extras
+            self.renderer.render, current, daily, pil_display, width, height, hourly, extras
         )
 
     # ------------------------------------------------------------------
@@ -377,9 +392,16 @@ class WeatherChannel:
 
         @router.get("/status")
         async def get_status():
+            try:
+                from app.services.html_renderer import html_renderer_service
+                html_available = html_renderer_service.available
+            except Exception:
+                html_available = False
             return JSONResponse({
                 "displays": self.get_subchannels(),
                 "last_error": self.last_error,
+                "last_html_error": self.last_html_error,
+                "html_renderer_available": html_available,
                 "setup_required": not bool(self.settings.api_key),
                 "settings": self.settings.to_public_dict(),
             })
