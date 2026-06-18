@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html data-theme="{{ theme }}" data-layout="{{ layout }}">
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: {{ width }}px;
+    height: {{ height }}px;
+    overflow: hidden;
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  :root {
+    --bg:      #0a0d14;
+    --panel:   #12161f;
+    --panel2:  #1a1f2e;
+    --border:  rgba(255,255,255,0.07);
+    --text:    #e8ecf4;
+    --sub:     rgba(232,236,244,0.5);
+    --dim:     rgba(232,236,244,0.28);
+    --accent:  #5b8af8;
+    --accent2: #7ecfff;
+    --pill-bg: rgba(91,138,248,0.14);
+    --pill-bd: rgba(91,138,248,0.3);
+    --accent-bar: #5b8af8;
+  }
+  [data-theme="light"] {
+    --bg:      #eef1f7;
+    --panel:   #ffffff;
+    --panel2:  #f4f6fb;
+    --border:  rgba(0,0,0,0.07);
+    --text:    #1a1f2e;
+    --sub:     rgba(26,31,46,0.55);
+    --dim:     rgba(26,31,46,0.35);
+    --accent:  #3060e0;
+    --accent2: #0097c7;
+    --pill-bg: rgba(48,96,224,0.08);
+    --pill-bd: rgba(48,96,224,0.25);
+    --accent-bar: #3060e0;
+  }
+
+  body { background: var(--bg); color: var(--text); }
+
+  /* ── LANDSCAPE ── */
+  [data-layout="landscape"] .wrap {
+    display: grid;
+    grid-template-columns: 6px 1fr;
+    height: 100%;
+  }
+  [data-layout="landscape"] .accent-bar {
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 100%);
+    border-radius: 0 3px 3px 0;
+  }
+  [data-layout="landscape"] .content {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: clamp(14px, 2.5vw, 24px);
+    gap: clamp(10px, 1.8vw, 18px);
+    overflow: hidden;
+  }
+  [data-layout="landscape"] .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  [data-layout="landscape"] .location { display: flex; flex-direction: column; gap: 1px; }
+  [data-layout="landscape"] .city { font-size: clamp(1rem, 2.2vw, 1.4rem); font-weight: 600; letter-spacing: -0.02em; }
+  [data-layout="landscape"] .updated { font-size: 0.65rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  [data-layout="landscape"] .current {
+    display: flex;
+    align-items: center;
+    gap: clamp(16px, 3vw, 32px);
+  }
+  [data-layout="landscape"] .icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  [data-layout="landscape"] .icon-ghost {
+    position: absolute;
+    opacity: 0.07;
+    filter: blur(2px);
+    transform: scale(1.5);
+    pointer-events: none;
+  }
+  [data-layout="landscape"] .icon-ghost img,
+  [data-layout="landscape"] .icon-wrap > img {
+    width: clamp(64px, 10vw, 96px);
+    height: clamp(64px, 10vw, 96px);
+    object-fit: contain;
+  }
+  [data-layout="landscape"] .temp-group { display: flex; flex-direction: column; gap: 3px; }
+  [data-layout="landscape"] .temp {
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    font-weight: 100;
+    letter-spacing: -3px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--text) 60%, var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  [data-layout="landscape"] .condition-pill {
+    display: inline-flex;
+    align-items: center;
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-bd);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: clamp(0.65rem, 1.1vw, 0.8rem);
+    color: var(--accent2);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    align-self: flex-start;
+  }
+  [data-layout="landscape"] .hl { font-size: 0.75rem; color: var(--dim); }
+
+  [data-layout="landscape"] .details {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    align-self: center;
+    flex: 1;
+  }
+  [data-layout="landscape"] .detail-chip {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  [data-layout="landscape"] .detail-label {
+    font-size: 0.58rem;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    white-space: nowrap;
+  }
+  [data-layout="landscape"] .detail-value { font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+
+  [data-layout="landscape"] .bottom {
+    display: flex;
+    gap: 10px;
+  }
+  [data-layout="landscape"] .forecast-row {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+  }
+  [data-layout="landscape"] .fc-day {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex: 1;
+  }
+  [data-layout="landscape"] .fc-day-label { font-size: 0.58rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+  [data-layout="landscape"] .fc-day img { width: 26px; height: 26px; object-fit: contain; }
+  [data-layout="landscape"] .fc-hi { font-size: 0.78rem; font-weight: 700; }
+  [data-layout="landscape"] .fc-lo { font-size: 0.68rem; color: var(--dim); }
+
+  [data-layout="landscape"] .hourly-row {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+  }
+  [data-layout="landscape"] .hr-slot {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 7px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex: 1;
+  }
+  [data-layout="landscape"] .hr-time { font-size: 0.58rem; color: var(--dim); }
+  [data-layout="landscape"] .hr-slot img { width: 22px; height: 22px; object-fit: contain; }
+  [data-layout="landscape"] .hr-temp { font-size: 0.72rem; font-weight: 700; }
+  [data-layout="landscape"] .hr-pop { font-size: 0.58rem; color: var(--accent2); }
+
+  /* ── PORTRAIT ── */
+  [data-layout="portrait"] .wrap {
+    display: grid;
+    grid-template-rows: 6px 1fr;
+    height: 100%;
+  }
+  [data-layout="portrait"] .accent-bar {
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
+  }
+  [data-layout="portrait"] .content {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(16px, 4vw, 28px);
+    gap: clamp(12px, 2.5vw, 20px);
+    overflow: hidden;
+  }
+  [data-layout="portrait"] .header { text-align: center; }
+  [data-layout="portrait"] .city { font-size: clamp(1rem, 3.5vw, 1.5rem); font-weight: 600; }
+  [data-layout="portrait"] .updated { font-size: 0.65rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+  [data-layout="portrait"] .current {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  [data-layout="portrait"] .icon-wrap { position: relative; }
+  [data-layout="portrait"] .icon-ghost {
+    position: absolute;
+    opacity: 0.06;
+    filter: blur(4px);
+    transform: scale(1.8) translate(-14%, -14%);
+    pointer-events: none;
+  }
+  [data-layout="portrait"] .icon-ghost img,
+  [data-layout="portrait"] .icon-wrap > img {
+    width:  clamp(80px, 24vw, 130px);
+    height: clamp(80px, 24vw, 130px);
+    object-fit: contain;
+  }
+  [data-layout="portrait"] .temp {
+    font-size: clamp(3.5rem, 16vw, 7rem);
+    font-weight: 100;
+    letter-spacing: -4px;
+    background: linear-gradient(135deg, var(--text) 60%, var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  [data-layout="portrait"] .condition-pill {
+    display: inline-flex;
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-bd);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.8rem;
+    color: var(--accent2);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  [data-layout="portrait"] .hl { font-size: 0.75rem; color: var(--dim); }
+
+  [data-layout="portrait"] .details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  [data-layout="portrait"] .detail-chip {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  [data-layout="portrait"] .detail-label { font-size: 0.6rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+  [data-layout="portrait"] .detail-value { font-size: 0.9rem; font-weight: 600; margin-top: 2px; }
+
+  [data-layout="portrait"] .forecast-row {
+    display: flex;
+    gap: 6px;
+  }
+  [data-layout="portrait"] .fc-day {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+  }
+  [data-layout="portrait"] .fc-day-label { font-size: 0.58rem; color: var(--dim); text-transform: uppercase; }
+  [data-layout="portrait"] .fc-day img { width: 24px; height: 24px; object-fit: contain; }
+  [data-layout="portrait"] .fc-hi { font-size: 0.78rem; font-weight: 700; }
+  [data-layout="portrait"] .fc-lo { font-size: 0.68rem; color: var(--dim); }
+
+  [data-layout="portrait"] .hourly-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  [data-layout="portrait"] .hr-slot {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  [data-layout="portrait"] .hr-time { font-size: 0.58rem; color: var(--dim); }
+  [data-layout="portrait"] .hr-slot img { width: 22px; height: 22px; object-fit: contain; }
+  [data-layout="portrait"] .hr-temp { font-size: 0.72rem; font-weight: 700; }
+  [data-layout="portrait"] .hr-pop { font-size: 0.58rem; color: var(--accent2); }
+
+  /* ── SQUARE ── */
+  [data-layout="square"] .wrap {
+    display: grid;
+    grid-template-columns: 6px 1fr;
+    height: 100%;
+  }
+  [data-layout="square"] .accent-bar {
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 100%);
+    border-radius: 0 3px 3px 0;
+  }
+  [data-layout="square"] .content {
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    padding: clamp(12px, 2.5vw, 20px);
+    gap: clamp(8px, 1.5vw, 14px);
+    overflow: hidden;
+  }
+  [data-layout="square"] .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  [data-layout="square"] .city { font-size: clamp(0.8rem, 2.5vw, 1.1rem); font-weight: 600; }
+  [data-layout="square"] .updated { font-size: 0.6rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+  [data-layout="square"] .current {
+    display: flex;
+    align-items: center;
+    gap: clamp(8px, 2vw, 16px);
+  }
+  [data-layout="square"] .icon-wrap { position: relative; }
+  [data-layout="square"] .icon-ghost {
+    position: absolute;
+    opacity: 0.06;
+    filter: blur(3px);
+    transform: scale(1.6) translate(-12%, -12%);
+    pointer-events: none;
+  }
+  [data-layout="square"] .icon-ghost img,
+  [data-layout="square"] .icon-wrap > img {
+    width:  clamp(50px, 11vw, 80px);
+    height: clamp(50px, 11vw, 80px);
+    object-fit: contain;
+  }
+  [data-layout="square"] .temp {
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    font-weight: 100;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, var(--text) 60%, var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  [data-layout="square"] .condition-pill {
+    display: inline-flex;
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-bd);
+    border-radius: 16px;
+    padding: 3px 9px;
+    font-size: 0.65rem;
+    color: var(--accent2);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  [data-layout="square"] .hl { font-size: 0.65rem; color: var(--dim); margin-top: 2px; }
+  [data-layout="square"] .details {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+    gap: 6px;
+  }
+  [data-layout="square"] .detail-chip {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 8px;
+  }
+  [data-layout="square"] .detail-label { font-size: 0.55rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+  [data-layout="square"] .detail-value { font-size: 0.75rem; font-weight: 600; margin-top: 1px; }
+  [data-layout="square"] .forecast-row {
+    display: flex;
+    gap: 5px;
+  }
+  [data-layout="square"] .fc-day {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    flex: 1;
+  }
+  [data-layout="square"] .fc-day-label { font-size: 0.55rem; color: var(--dim); text-transform: uppercase; }
+  [data-layout="square"] .fc-day img { width: 20px; height: 20px; object-fit: contain; }
+  [data-layout="square"] .fc-hi { font-size: 0.7rem; font-weight: 700; }
+  [data-layout="square"] .fc-lo { font-size: 0.62rem; color: var(--dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="accent-bar"></div>
+  <div class="content">
+
+    <!-- HEADER: location -->
+    <div class="header">
+      <div class="location">
+        <div class="city">{{ city }}{% if country %}, {{ country }}{% endif %}</div>
+        <div class="updated">Updated {{ updated }}</div>
+      </div>
+      {% if layout == "landscape" %}
+      <div class="details">
+        {% for d in details %}
+        <div class="detail-chip">
+          <div class="detail-label">{{ d.label }}</div>
+          <div class="detail-value">{{ d.value }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- CURRENT CONDITIONS -->
+    <div class="current">
+      <div class="icon-wrap">
+        {% if icon %}<div class="icon-ghost"><img src="{{ icon }}" alt=""></div>{% endif %}
+        {% if icon %}<img src="{{ icon }}" alt="">{% endif %}
+      </div>
+      <div>
+        <div class="temp">{{ temp }}</div>
+        <div class="condition-pill">{{ condition }}</div>
+        {% if high and low %}<div class="hl">{{ high }} / {{ low }}</div>{% endif %}
+      </div>
+    </div>
+
+    {% if layout != "landscape" and details %}
+    <div class="details">
+      {% for d in details %}
+      <div class="detail-chip">
+        <div class="detail-label">{{ d.label }}</div>
+        <div class="detail-value">{{ d.value }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- HOURLY -->
+    {% if hourly %}
+    <div class="hourly-row">
+      {% for h in hourly %}
+      <div class="hr-slot">
+        <div class="hr-time">{{ h.time }}</div>
+        {% if h.icon %}<img src="{{ h.icon }}" alt="">{% endif %}
+        <div class="hr-temp">{{ h.temp }}</div>
+        {% if h.pop > 0 %}<div class="hr-pop">{{ (h.pop * 100)|int }}%</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- FORECAST -->
+    {% if forecast %}
+    <div class="forecast-row">
+      {% for day in forecast %}
+      <div class="fc-day">
+        <div class="fc-day-label">{{ day.day }}</div>
+        {% if day.icon %}<img src="{{ day.icon }}" alt="">{% endif %}
+        <div class="fc-hi">{{ day.high }}</div>
+        <div class="fc-lo">{{ day.low }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+</body>
+</html>

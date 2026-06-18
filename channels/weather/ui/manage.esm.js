@@ -740,9 +740,16 @@ class WeatherManager extends HTMLElement {
             <div class="field">
               <label>Style</label>
               <select data-field="style">
-                <option value="minimal" ${form.style === 'minimal' ? 'selected' : ''}>Minimal — clean, data-first</option>
-                <option value="modern"  ${form.style === 'modern'  ? 'selected' : ''}>Modern — bold typography, accent colors</option>
-                <option value="ios"     ${form.style === 'ios'     ? 'selected' : ''}>iOS — sky gradient, frosted cards</option>
+                <optgroup label="PIL Styles">
+                  <option value="minimal" ${form.style === 'minimal' ? 'selected' : ''}>Minimal — clean, data-first</option>
+                  <option value="modern"  ${form.style === 'modern'  ? 'selected' : ''}>Modern — bold typography, accent colors</option>
+                  <option value="ios"     ${form.style === 'ios'     ? 'selected' : ''}>iOS — sky gradient, frosted cards</option>
+                </optgroup>
+                <optgroup label="Web Styles (HTML)">
+                  <option value="minimal-web" ${form.style === 'minimal-web' ? 'selected' : ''}>Minimal Web — clean, responsive HTML</option>
+                  <option value="modern-web"  ${form.style === 'modern-web'  ? 'selected' : ''}>Modern Web — accent sidebar, gradient text</option>
+                  <option value="ios-web"     ${form.style === 'ios-web'     ? 'selected' : ''}>iOS Web — sky gradient, frosted glass</option>
+                </optgroup>
               </select>
             </div>
             <div class="field">

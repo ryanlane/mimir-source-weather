@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html data-layout="{{ layout }}">
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: {{ width }}px;
+    height: {{ height }}px;
+    overflow: hidden;
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  body {
+    background: linear-gradient(180deg, {{ sky_top }} 0%, {{ sky_bottom }} 100%);
+    color: #ffffff;
+    position: relative;
+  }
+
+  /* ── GLASS CARD ── */
+  .glass {
+    background: rgba(255,255,255,0.13);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 20px;
+  }
+  .glass-subtle {
+    background: rgba(255,255,255,0.09);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+  }
+
+  /* ── TEXT HELPERS ── */
+  .label {
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    font-weight: 500;
+  }
+  .value-sm  { font-size: 0.78rem; font-weight: 600; }
+  .dim       { opacity: 0.6; }
+
+  /* ═══════════════════ LANDSCAPE ═══════════════════ */
+  [data-layout="landscape"] .wrap {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: auto 1fr auto;
+    height: 100%;
+    padding: clamp(16px, 2.5vw, 28px);
+    gap: clamp(10px, 1.8vw, 18px);
+  }
+
+  /* Left column: stacks vertically */
+  [data-layout="landscape"] .left {
+    grid-row: 1 / 4;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1.8vw, 18px);
+  }
+  [data-layout="landscape"] .location-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  [data-layout="landscape"] .city {
+    font-size: clamp(1.1rem, 2.5vw, 1.7rem);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+  }
+  [data-layout="landscape"] .updated { font-size: 0.65rem; opacity: 0.55; }
+  [data-layout="landscape"] .current-card {
+    padding: clamp(14px, 2vw, 20px);
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 2vw, 20px);
+    flex: 1;
+  }
+  [data-layout="landscape"] .icon-wrap img {
+    width: clamp(70px, 11vw, 100px);
+    height: clamp(70px, 11vw, 100px);
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+  }
+  [data-layout="landscape"] .temp-block { display: flex; flex-direction: column; gap: 4px; }
+  [data-layout="landscape"] .temp {
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    font-weight: 100;
+    letter-spacing: -3px;
+    line-height: 1;
+  }
+  [data-layout="landscape"] .condition {
+    font-size: clamp(0.75rem, 1.3vw, 1rem);
+    opacity: 0.8;
+    font-weight: 300;
+  }
+  [data-layout="landscape"] .hl { font-size: clamp(0.7rem, 1.1vw, 0.85rem); opacity: 0.6; margin-top: 2px; }
+
+  /* Right column */
+  [data-layout="landscape"] .right {
+    grid-row: 1 / 4;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(10px, 1.8vw, 18px);
+  }
+  [data-layout="landscape"] .details-card {
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+  }
+  [data-layout="landscape"] .detail-row { display: flex; flex-direction: column; gap: 2px; }
+  [data-layout="landscape"] .forecast-card {
+    padding: 12px 14px;
+    flex: 1;
+  }
+  [data-layout="landscape"] .forecast-card .card-title { margin-bottom: 10px; }
+  [data-layout="landscape"] .fc-day {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  [data-layout="landscape"] .fc-day:last-child { border-bottom: none; }
+  [data-layout="landscape"] .fc-day-name { flex: 1; font-size: 0.8rem; font-weight: 400; }
+  [data-layout="landscape"] .fc-day img { width: 24px; height: 24px; object-fit: contain; }
+  [data-layout="landscape"] .fc-hi { font-size: 0.8rem; font-weight: 600; min-width: 40px; text-align: right; }
+  [data-layout="landscape"] .fc-lo { font-size: 0.8rem; opacity: 0.55; min-width: 36px; text-align: right; }
+
+  [data-layout="landscape"] .hourly-card { padding: 12px 14px; }
+  [data-layout="landscape"] .hourly-card .card-title { margin-bottom: 8px; }
+  [data-layout="landscape"] .hourly-row { display: flex; gap: 8px; }
+  [data-layout="landscape"] .hr-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    padding: 6px 4px;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+  [data-layout="landscape"] .hr-slot:last-child { border-right: none; }
+  [data-layout="landscape"] .hr-time { font-size: 0.6rem; opacity: 0.6; }
+  [data-layout="landscape"] .hr-slot img { width: 22px; height: 22px; object-fit: contain; }
+  [data-layout="landscape"] .hr-temp { font-size: 0.75rem; font-weight: 600; }
+  [data-layout="landscape"] .hr-pop { font-size: 0.58rem; opacity: 0.75; }
+
+  /* ═══════════════════ PORTRAIT ═══════════════════ */
+  [data-layout="portrait"] .wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: clamp(20px, 5vw, 36px) clamp(16px, 4vw, 28px);
+    gap: clamp(14px, 3vw, 24px);
+    align-items: center;
+  }
+  [data-layout="portrait"] .location-row { text-align: center; }
+  [data-layout="portrait"] .city {
+    font-size: clamp(1.3rem, 5vw, 2.2rem);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+  }
+  [data-layout="portrait"] .updated { font-size: 0.7rem; opacity: 0.55; margin-top: 2px; }
+
+  [data-layout="portrait"] .current-card {
+    width: 100%;
+    padding: clamp(16px, 4vw, 28px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  [data-layout="portrait"] .icon-wrap img {
+    width: clamp(90px, 26vw, 150px);
+    height: clamp(90px, 26vw, 150px);
+    object-fit: contain;
+    filter: drop-shadow(0 6px 16px rgba(0,0,0,0.35));
+  }
+  [data-layout="portrait"] .temp {
+    font-size: clamp(4rem, 18vw, 8rem);
+    font-weight: 100;
+    letter-spacing: -4px;
+    line-height: 1;
+  }
+  [data-layout="portrait"] .condition { font-size: 1rem; opacity: 0.8; font-weight: 300; }
+  [data-layout="portrait"] .hl { font-size: 0.85rem; opacity: 0.6; }
+
+  [data-layout="portrait"] .details-card {
+    width: 100%;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+  }
+  [data-layout="portrait"] .detail-row { display: flex; flex-direction: column; gap: 2px; }
+
+  [data-layout="portrait"] .forecast-card {
+    width: 100%;
+    padding: 12px 14px;
+  }
+  [data-layout="portrait"] .forecast-card .card-title { margin-bottom: 8px; }
+  [data-layout="portrait"] .fc-day {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  [data-layout="portrait"] .fc-day:last-child { border-bottom: none; }
+  [data-layout="portrait"] .fc-day-name { flex: 1; font-size: 0.85rem; }
+  [data-layout="portrait"] .fc-day img { width: 26px; height: 26px; object-fit: contain; }
+  [data-layout="portrait"] .fc-hi { font-size: 0.85rem; font-weight: 600; min-width: 44px; text-align: right; }
+  [data-layout="portrait"] .fc-lo { font-size: 0.85rem; opacity: 0.5; min-width: 44px; text-align: right; }
+
+  [data-layout="portrait"] .hourly-card {
+    width: 100%;
+    padding: 12px 14px;
+  }
+  [data-layout="portrait"] .hourly-card .card-title { margin-bottom: 8px; }
+  [data-layout="portrait"] .hourly-row {
+    display: flex;
+    gap: 6px;
+    overflow: hidden;
+  }
+  [data-layout="portrait"] .hr-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    padding: 6px 4px;
+  }
+  [data-layout="portrait"] .hr-time { font-size: 0.6rem; opacity: 0.6; }
+  [data-layout="portrait"] .hr-slot img { width: 24px; height: 24px; object-fit: contain; }
+  [data-layout="portrait"] .hr-temp { font-size: 0.75rem; font-weight: 600; }
+  [data-layout="portrait"] .hr-pop { font-size: 0.6rem; opacity: 0.75; }
+
+  /* ═══════════════════ SQUARE ═══════════════════ */
+  [data-layout="square"] .wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: clamp(14px, 3vw, 24px);
+    gap: clamp(10px, 2vw, 16px);
+  }
+  [data-layout="square"] .location-row { display: flex; justify-content: space-between; align-items: flex-start; }
+  [data-layout="square"] .city { font-size: clamp(0.9rem, 2.8vw, 1.3rem); font-weight: 300; }
+  [data-layout="square"] .updated { font-size: 0.6rem; opacity: 0.55; margin-top: 2px; }
+
+  [data-layout="square"] .current-card {
+    padding: clamp(12px, 2.5vw, 18px);
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 2vw, 16px);
+    flex: 1;
+  }
+  [data-layout="square"] .icon-wrap img {
+    width: clamp(56px, 12vw, 90px);
+    height: clamp(56px, 12vw, 90px);
+    object-fit: contain;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+  }
+  [data-layout="square"] .temp {
+    font-size: clamp(2.5rem, 9vw, 4.5rem);
+    font-weight: 100;
+    letter-spacing: -2px;
+  }
+  [data-layout="square"] .condition { font-size: 0.75rem; opacity: 0.8; font-weight: 300; }
+  [data-layout="square"] .hl { font-size: 0.68rem; opacity: 0.6; margin-top: 1px; }
+
+  [data-layout="square"] .details-card {
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px 12px;
+  }
+  [data-layout="square"] .detail-row { display: flex; flex-direction: column; gap: 2px; }
+
+  [data-layout="square"] .forecast-card { padding: 10px 14px; }
+  [data-layout="square"] .forecast-card .card-title { margin-bottom: 6px; }
+  [data-layout="square"] .forecast-row { display: flex; gap: 6px; }
+  [data-layout="square"] .fc-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    padding: 6px 4px;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+  [data-layout="square"] .fc-day:last-child { border-right: none; }
+  [data-layout="square"] .fc-day-name { font-size: 0.6rem; opacity: 0.65; text-transform: uppercase; }
+  [data-layout="square"] .fc-day img { width: 22px; height: 22px; object-fit: contain; }
+  [data-layout="square"] .fc-hi { font-size: 0.72rem; font-weight: 600; }
+  [data-layout="square"] .fc-lo { font-size: 0.65rem; opacity: 0.5; }
+
+  .card-title {
+    font-size: 0.58rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  {% if layout == "landscape" %}
+  <!-- ─── LANDSCAPE ─── -->
+  <div class="left">
+    <div class="location-row">
+      <div class="city">{{ city }}{% if country %}, {{ country }}{% endif %}</div>
+      <div class="updated">Updated {{ updated }}</div>
+    </div>
+
+    <div class="current-card glass">
+      <div class="icon-wrap">{% if icon %}<img src="{{ icon }}" alt="">{% endif %}</div>
+      <div class="temp-block">
+        <div class="temp">{{ temp }}</div>
+        <div class="condition">{{ condition }}</div>
+        {% if high and low %}<div class="hl">{{ high }} / {{ low }}</div>{% endif %}
+      </div>
+    </div>
+
+    {% if hourly %}
+    <div class="hourly-card glass-subtle">
+      <div class="card-title">Hourly</div>
+      <div class="hourly-row">
+        {% for h in hourly %}
+        <div class="hr-slot">
+          <div class="hr-time">{{ h.time }}</div>
+          {% if h.icon %}<img src="{{ h.icon }}" alt="">{% endif %}
+          <div class="hr-temp">{{ h.temp }}</div>
+          {% if h.pop > 0 %}<div class="hr-pop">{{ (h.pop * 100)|int }}%</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="right">
+    {% if details %}
+    <div class="details-card glass-subtle">
+      {% for d in details %}
+      <div class="detail-row">
+        <div class="label">{{ d.label }}</div>
+        <div class="value-sm">{{ d.value }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if forecast %}
+    <div class="forecast-card glass">
+      <div class="card-title">{{ forecast|length }}-Day Forecast</div>
+      {% for day in forecast %}
+      <div class="fc-day">
+        <div class="fc-day-name">{{ day.day }}</div>
+        {% if day.icon %}<img src="{{ day.icon }}" alt="">{% endif %}
+        <div class="fc-lo">{{ day.low }}</div>
+        <div class="fc-hi">{{ day.high }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% elif layout == "portrait" %}
+  <!-- ─── PORTRAIT ─── -->
+  <div class="location-row">
+    <div class="city">{{ city }}{% if country %}, {{ country }}{% endif %}</div>
+    <div class="updated">Updated {{ updated }}</div>
+  </div>
+
+  <div class="current-card glass">
+    <div class="icon-wrap">{% if icon %}<img src="{{ icon }}" alt="">{% endif %}</div>
+    <div class="temp">{{ temp }}</div>
+    <div class="condition">{{ condition }}</div>
+    {% if high and low %}<div class="hl">{{ high }} / {{ low }}</div>{% endif %}
+  </div>
+
+  {% if details %}
+  <div class="details-card glass-subtle">
+    {% for d in details %}
+    <div class="detail-row">
+      <div class="label">{{ d.label }}</div>
+      <div class="value-sm">{{ d.value }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if hourly %}
+  <div class="hourly-card glass-subtle">
+    <div class="card-title">Hourly</div>
+    <div class="hourly-row">
+      {% for h in hourly %}
+      <div class="hr-slot">
+        <div class="hr-time">{{ h.time }}</div>
+        {% if h.icon %}<img src="{{ h.icon }}" alt="">{% endif %}
+        <div class="hr-temp">{{ h.temp }}</div>
+        {% if h.pop > 0 %}<div class="hr-pop">{{ (h.pop * 100)|int }}%</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if forecast %}
+  <div class="forecast-card glass">
+    <div class="card-title">{{ forecast|length }}-Day Forecast</div>
+    {% for day in forecast %}
+    <div class="fc-day">
+      <div class="fc-day-name">{{ day.day }}</div>
+      {% if day.icon %}<img src="{{ day.icon }}" alt="">{% endif %}
+      <div class="fc-lo">{{ day.low }}</div>
+      <div class="fc-hi">{{ day.high }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <!-- ─── SQUARE ─── -->
+  <div class="location-row">
+    <div>
+      <div class="city">{{ city }}{% if country %}, {{ country }}{% endif %}</div>
+      <div class="updated">Updated {{ updated }}</div>
+    </div>
+  </div>
+
+  <div class="current-card glass">
+    <div class="icon-wrap">{% if icon %}<img src="{{ icon }}" alt="">{% endif %}</div>
+    <div>
+      <div class="temp">{{ temp }}</div>
+      <div class="condition">{{ condition }}</div>
+      {% if high and low %}<div class="hl">{{ high }} / {{ low }}</div>{% endif %}
+    </div>
+  </div>
+
+  {% if details %}
+  <div class="details-card glass-subtle">
+    {% for d in details %}
+    <div class="detail-row">
+      <div class="label">{{ d.label }}</div>
+      <div class="value-sm">{{ d.value }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if forecast %}
+  <div class="forecast-card glass-subtle">
+    <div class="card-title">Forecast</div>
+    <div class="forecast-row">
+      {% for day in forecast %}
+      <div class="fc-day">
+        <div class="fc-day-name">{{ day.day }}</div>
+        {% if day.icon %}<img src="{{ day.icon }}" alt="">{% endif %}
+        <div class="fc-hi">{{ day.high }}</div>
+        <div class="fc-lo">{{ day.low }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+
+</div>
+</body>
+</html>

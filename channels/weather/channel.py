@@ -17,6 +17,7 @@ from fastapi.responses import JSONResponse, Response
 
 from .models import DisplayStore, Settings, WeatherCache, WeatherDisplay
 from .renderer import WeatherRenderer
+from .web_renderer import HTML_STYLES, WeatherHtmlRenderer
 from . import fetcher as _fetcher
 
 _PLUGIN_DIR = Path(__file__).parent
@@ -49,6 +50,7 @@ class WeatherChannel:
         self.store = DisplayStore(self.data_dir / "displays.json")
         self.cache = WeatherCache(self.data_dir / "weather_cache.json")
         self.renderer = WeatherRenderer(self.data_dir / "icons")
+        self.web_renderer = WeatherHtmlRenderer(self.data_dir / "icons")
         self.last_error: Optional[str] = None
 
         logger.info("[Weather] Initialized at %s, %d displays", self.channel_dir, len(self.store.all()))
@@ -133,6 +135,34 @@ class WeatherChannel:
         return extras
 
     # ------------------------------------------------------------------
+    # Rendering dispatch
+
+    async def _render_image(
+        self,
+        weather: Dict[str, Any],
+        display: WeatherDisplay,
+        width: int,
+        height: int,
+    ) -> bytes:
+        """Route to HTML renderer for *-web styles; fall back to PIL otherwise."""
+        current  = weather["current"]
+        daily    = weather["forecast"]["daily"]
+        hourly   = weather["forecast"]["hourly"]
+        extras   = weather.get("extras")
+
+        if display.style in HTML_STYLES:
+            try:
+                return await self.web_renderer.render(
+                    current, daily, display, width, height, hourly, extras
+                )
+            except Exception as exc:
+                logger.warning("[Weather] HTML render failed, falling back to PIL: %s", exc)
+
+        return await asyncio.to_thread(
+            self.renderer.render, current, daily, display, width, height, hourly, extras
+        )
+
+    # ------------------------------------------------------------------
     # Mimir channel protocol
 
     def get_manifest(self) -> Dict[str, Any]:
@@ -208,11 +238,7 @@ class WeatherChannel:
 
         try:
             weather = await self._get_weather(display)
-            img_bytes = await asyncio.to_thread(
-                self.renderer.render,
-                weather["current"], weather["forecast"]["daily"], display, width, height,
-                weather["forecast"]["hourly"], weather.get("extras"),
-            )
+            img_bytes = await self._render_image(weather, display, width, height)
             return {
                 "success": True,
                 "bytes": img_bytes,
@@ -288,10 +314,7 @@ class WeatherChannel:
                 raise HTTPException(400, "API key not configured")
             try:
                 weather = await self._get_weather(d)
-                img = await asyncio.to_thread(
-                    self.renderer.render, weather["current"], weather["forecast"]["daily"], d, pw, ph,
-                    weather["forecast"]["hourly"], weather.get("extras"),
-                )
+                img = await self._render_image(weather, d, pw, ph)
                 return Response(content=img, media_type="image/jpeg",
                                 headers={"Cache-Control": "no-store"})
             except Exception as exc:
@@ -315,10 +338,7 @@ class WeatherChannel:
 
             try:
                 weather = await self._get_weather(display)
-                img = await asyncio.to_thread(
-                    self.renderer.render, weather["current"], weather["forecast"]["daily"], display, pw, ph,
-                    weather["forecast"]["hourly"], weather.get("extras"),
-                )
+                img = await self._render_image(weather, display, pw, ph)
                 return Response(content=img, media_type="image/jpeg",
                                 headers={"Cache-Control": "no-store"})
             except Exception as exc:
