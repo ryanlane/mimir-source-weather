@@ -2,7 +2,7 @@
   "id": "com.mimir.weather",
   "name": "Weather",
   "description": "Renders live weather displays using OpenWeatherMap data. Each configured city is a sub-channel with its own layout, units, and style — assign different cities to different screens.",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "type": "embedded",
   "entry_point": "channel.py",
   "class_name": "WeatherChannel",

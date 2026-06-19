@@ -21,11 +21,20 @@
   }
 
   /* ── DIAGONAL GRADIENT BLOCK ── */
+  /* clip-path lives on .slice; gradient + filter live on ::before so
+     filter: saturate() applies to the painted gradient, not the geometry. */
   .slice {
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: linear-gradient(135deg, #6600CC 0%, #FF0066 100%);
+  }
+  .slice::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, {{ sky_top }} 0%, {{ sky_bottom }} 100%);
+    /* Push whatever the sky colour is toward vivid / neon */
+    filter: saturate(2.8) brightness(1.25) contrast(1.1);
   }
 
   /* ── SVG ACCENT RULE ── */
@@ -80,13 +89,17 @@
     filter: drop-shadow(0 0 14px rgba(255,255,255,0.45));
   }
 
-  /* ── LOWER INFO SECTION ── */
+  /* ── INFO SECTION — also rotated -45° ──
+     Uses center-anchor positioning so rotating doesn't move it off-screen.
+     Each layout sets top/left to the visual center of the dark area. */
   .info {
     position: absolute;
     z-index: 2;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
+    /* Content width is clamped per-layout; this is the shared baseline */
+    white-space: nowrap;
   }
 
   /* Section heading */
@@ -103,7 +116,7 @@
   .details-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 5px 12px;
+    gap: 5px 14px;
   }
   .det { display: flex; flex-direction: column; gap: 1px; }
   .det-lbl {
@@ -121,10 +134,7 @@
   }
 
   /* Forecast */
-  .fc-row {
-    display: flex;
-    gap: 5px;
-  }
+  .fc-row { display: flex; gap: 5px; }
   .fc-card {
     flex: 1;
     background: rgba(255,255,255,0.07);
@@ -161,14 +171,10 @@
     align-items: center;
     gap: 2px;
   }
-  .hr-time {
-    font-size: 0.52rem;
-    font-weight: 900;
-    color: rgba(255,255,255,0.35);
-  }
+  .hr-time { font-size: 0.52rem; font-weight: 900; color: rgba(255,255,255,0.35); }
   .hr-card img { width: 18px; height: 18px; object-fit: contain; }
   .hr-temp { font-size: 0.72rem; font-weight: 900; }
-  .hr-pop { font-size: 0.52rem; font-weight: 900; color: #7ecfff; }
+  .hr-pop  { font-size: 0.52rem; font-weight: 900; color: #7ecfff; }
 
   .footer-text {
     font-size: 0.52rem;
@@ -176,20 +182,16 @@
     text-transform: uppercase;
     letter-spacing: 0.07em;
     color: rgba(255,255,255,0.2);
-    margin-top: auto;
-    padding-top: 4px;
+    padding-top: 6px;
   }
 
-  .spacer { flex: 1; }
-
-  /* ════════════ LANDSCAPE ════════════ */
-  /* True 45°: Δx = Δy = height → from (70%W, 0) to (10%W, H) for 800×480 */
+  /* ════════════ LANDSCAPE ════════════
+     True 45°: from (70%W, 0) to (10%W, H).  Dark area center ≈ (69%, 50%). */
   [data-layout="landscape"] .slice {
     clip-path: polygon(0 0, 70% 0, 10% 100%, 0 100%);
   }
   [data-layout="landscape"] .current {
-    top: 50%;
-    left: 19%;
+    top: 50%; left: 19%;
     transform: translate(-50%, -50%) rotate(-45deg);
     gap: 2px;
   }
@@ -198,23 +200,21 @@
   [data-layout="landscape"] .cond-label { font-size: clamp(0.6rem, 1.2vw, 0.85rem); }
   [data-layout="landscape"] .hl-label   { font-size: clamp(0.6rem, 1.1vw, 0.8rem); }
   [data-layout="landscape"] .wx-icon    { width: clamp(50px, 7vw, 72px); height: clamp(50px, 7vw, 72px); }
+  /* Info: center of the dark right zone → rotate -45° around that center */
   [data-layout="landscape"] .info {
-    top: 14px;
-    left: 44%;
-    right: 16px;
-    bottom: 14px;
+    width: 270px;
+    top: 50%; left: 69%;
+    transform: translate(-50%, -50%) rotate(-45deg);
     gap: 10px;
   }
 
-  /* ════════════ PORTRAIT ════════════ */
-  /* True 45° in portrait (480×800): "/" from (100%, 20%) to (0%, 80%)
-     Δx = W=480, Δy = 0.60H = 480 ✓ */
+  /* ════════════ PORTRAIT ════════════
+     True 45° "/": from (100%, 20%) to (0%, 80%).  Dark area center ≈ (50%, 68%). */
   [data-layout="portrait"] .slice {
     clip-path: polygon(0 0, 100% 0, 100% 20%, 0% 80%);
   }
   [data-layout="portrait"] .current {
-    top: 28%;
-    left: 40%;
+    top: 28%; left: 40%;
     transform: translate(-50%, -50%) rotate(-45deg);
     gap: 2px;
   }
@@ -224,22 +224,19 @@
   [data-layout="portrait"] .hl-label   { font-size: clamp(0.6rem, 2vw, 0.8rem); }
   [data-layout="portrait"] .wx-icon    { width: clamp(48px, 13vw, 80px); height: clamp(48px, 13vw, 80px); }
   [data-layout="portrait"] .info {
-    top: 50%;
-    left: 16px;
-    right: 16px;
-    bottom: 16px;
+    width: 290px;
+    top: 68%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
     gap: 10px;
   }
 
-  /* ════════════ SQUARE ════════════ */
-  /* True 45° "\" in square (600×600): from (70%W, 0) to (0%, 70%H)
-     Δx = 70%*600 = 420, Δy = 70%*600 = 420 ✓ */
+  /* ════════════ SQUARE ════════════
+     True 45° "\": upper-left triangle to (70%, 0) → (0%, 70%).  Dark center ≈ (68%, 62%). */
   [data-layout="square"] .slice {
     clip-path: polygon(0 0, 70% 0, 0% 70%);
   }
   [data-layout="square"] .current {
-    top: 22%;
-    left: 22%;
+    top: 22%; left: 22%;
     transform: translate(-50%, -50%) rotate(-45deg);
     gap: 1px;
   }
@@ -249,22 +246,9 @@
   [data-layout="square"] .hl-label   { font-size: clamp(0.55rem, 1.5vw, 0.72rem); }
   [data-layout="square"] .wx-icon    { width: clamp(36px, 7vw, 56px); height: clamp(36px, 7vw, 56px); }
   [data-layout="square"] .info {
-    top: 14px;
-    left: 36%;
-    right: 14px;
-    bottom: 48%;
-    gap: 8px;
-  }
-  /* Square needs a second info section for forecast/hourly in the bottom half */
-  [data-layout="square"] .info-bottom {
-    position: absolute;
-    z-index: 2;
-    top: 54%;
-    left: 14px;
-    right: 14px;
-    bottom: 14px;
-    display: flex;
-    flex-direction: column;
+    width: 230px;
+    top: 62%; left: 68%;
+    transform: translate(-50%, -50%) rotate(-45deg);
     gap: 8px;
   }
 </style>
@@ -272,66 +256,65 @@
 <body>
 <div class="wrap">
 
-  <!-- DIAGONAL COLOR SLICE -->
+  <!-- DIAGONAL COLOR SLICE (sky-condition gradient via ::before) -->
   <div class="slice"></div>
 
-  <!-- SVG DIAGONAL ACCENT LINE -->
+  <!-- SVG DIAGONAL ACCENT LINE — colour tinted from sky_top -->
   {% if layout == "landscape" %}
   <svg class="rule" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%"   stop-color="#fff" stop-opacity="0.5"/>
-        <stop offset="100%" stop-color="#fff" stop-opacity="0.05"/>
+      <linearGradient id="lg" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%"   stop-color="#fff" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0.04"/>
       </linearGradient>
+      <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
     </defs>
     <line x1="{{ (width * 0.70)|int }}" y1="0"
           x2="{{ (width * 0.10)|int }}" y2="{{ height }}"
-          stroke="url(#lg)" stroke-width="2.5"/>
-    <!-- neon glow duplicate -->
+          stroke="{{ sky_top }}" stroke-width="10" stroke-opacity="0.4" filter="url(#glow)"/>
     <line x1="{{ (width * 0.70)|int }}" y1="0"
           x2="{{ (width * 0.10)|int }}" y2="{{ height }}"
-          stroke="rgba(200,100,255,0.35)" stroke-width="8" filter="url(#glow)"/>
-    <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+          stroke="url(#lg)" stroke-width="2"/>
   </svg>
 
   {% elif layout == "portrait" %}
   <svg class="rule" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%"   stop-color="#fff" stop-opacity="0.5"/>
-        <stop offset="100%" stop-color="#fff" stop-opacity="0.05"/>
+      <linearGradient id="lg" x1="100%" y1="0%" x2="0%" y2="0%">
+        <stop offset="0%"   stop-color="#fff" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0.04"/>
       </linearGradient>
-      <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>
     </defs>
     <line x1="{{ width }}" y1="{{ (height * 0.20)|int }}"
           x2="0" y2="{{ (height * 0.80)|int }}"
-          stroke="url(#lg)" stroke-width="2.5"/>
+          stroke="{{ sky_top }}" stroke-width="10" stroke-opacity="0.4" filter="url(#glow)"/>
     <line x1="{{ width }}" y1="{{ (height * 0.20)|int }}"
           x2="0" y2="{{ (height * 0.80)|int }}"
-          stroke="rgba(200,100,255,0.35)" stroke-width="8" filter="url(#glow)"/>
+          stroke="url(#lg)" stroke-width="2"/>
   </svg>
 
   {% else %}{# square #}
   <svg class="rule" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%"   stop-color="#fff" stop-opacity="0.5"/>
-        <stop offset="100%" stop-color="#fff" stop-opacity="0.05"/>
+        <stop offset="0%"   stop-color="#fff" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0.04"/>
       </linearGradient>
-      <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>
     </defs>
     <line x1="{{ (width * 0.70)|int }}" y1="0"
           x2="0" y2="{{ (height * 0.70)|int }}"
-          stroke="url(#lg)" stroke-width="2.5"/>
+          stroke="{{ sky_top }}" stroke-width="10" stroke-opacity="0.4" filter="url(#glow)"/>
     <line x1="{{ (width * 0.70)|int }}" y1="0"
           x2="0" y2="{{ (height * 0.70)|int }}"
-          stroke="rgba(200,100,255,0.35)" stroke-width="8" filter="url(#glow)"/>
+          stroke="url(#lg)" stroke-width="2"/>
   </svg>
   {% endif %}
 
@@ -344,7 +327,7 @@
     {% if high and low %}<div class="hl-label">{{ high }} / {{ low }}</div>{% endif %}
   </div>
 
-  <!-- INFO: details + forecast + hourly -->
+  <!-- INFO: details + forecast + hourly — also rotated -45° -->
   <div class="info">
 
     {% if details %}
@@ -377,7 +360,7 @@
     </div>
     {% endif %}
 
-    {% if forecast and layout != "square" %}
+    {% if forecast %}
     <div>
       <div class="sec-head">{{ forecast|length }}-Day Forecast</div>
       <div class="fc-row">
@@ -395,23 +378,6 @@
 
     <div class="footer-text">Updated {{ updated }}</div>
   </div>
-
-  <!-- SQUARE ONLY: second info zone for forecast in bottom half -->
-  {% if layout == "square" and forecast %}
-  <div class="info-bottom">
-    <div class="sec-head">{{ forecast|length }}-Day Forecast</div>
-    <div class="fc-row">
-      {% for day in forecast %}
-      <div class="fc-card">
-        <div class="fc-day-name">{{ day.day }}</div>
-        {% if day.icon %}<img src="{{ day.icon }}" alt="">{% endif %}
-        <div class="fc-hi">{{ day.high }}</div>
-        <div class="fc-lo">{{ day.low }}</div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
 
 </div>
 </body>
