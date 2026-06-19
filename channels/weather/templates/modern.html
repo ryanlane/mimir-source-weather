@@ -214,6 +214,55 @@
   [data-theme="light"] .hr-pop { color: #2e78bf; }
   [data-theme="light"] .footer-text { color: rgba(16,36,58,0.42); }
 
+  /* ── HIGH CONTRAST DARK — pure black bg, WHITE diagonal slice ── */
+  html[data-theme="hc-dark"],
+  html[data-theme="hc-dark"] body { background: #000000; color: #ffffff; }
+  [data-theme="hc-dark"] .slice::before { background: #ffffff; filter: none; }
+  [data-theme="hc-dark"] .rule { display: none; }
+  /* Current conditions sit on white slice → black text */
+  [data-theme="hc-dark"] .big-temp   { color: #000000; text-shadow: none; }
+  [data-theme="hc-dark"] .city-label { color: rgba(0,0,0,0.78); }
+  [data-theme="hc-dark"] .cond-label { color: rgba(0,0,0,0.66); }
+  [data-theme="hc-dark"] .hl-label   { color: rgba(0,0,0,0.55); }
+  [data-theme="hc-dark"] .wx-icon    { filter: none; }
+  /* Info section sits on black bg → white text (already default, but reinforce) */
+  [data-theme="hc-dark"] .sec-head   { color: rgba(255,255,255,0.52); }
+  [data-theme="hc-dark"] .det-lbl    { color: rgba(255,255,255,0.52); }
+  [data-theme="hc-dark"] .det-val    { color: #ffffff; }
+  [data-theme="hc-dark"] .fc-card,
+  [data-theme="hc-dark"] .hr-card    { background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.72); }
+  [data-theme="hc-dark"] .fc-day-name,
+  [data-theme="hc-dark"] .hr-time    { color: rgba(255,255,255,0.58); }
+  [data-theme="hc-dark"] .fc-hi      { color: #ffffff; }
+  [data-theme="hc-dark"] .fc-lo      { color: rgba(255,255,255,0.58); }
+  [data-theme="hc-dark"] .hr-temp    { color: #ffffff; }
+  [data-theme="hc-dark"] .hr-pop     { color: #99ddff; }
+  [data-theme="hc-dark"] .footer-text { color: rgba(255,255,255,0.4); }
+
+  /* ── HIGH CONTRAST LIGHT — pure white bg, BLACK diagonal slice ── */
+  html[data-theme="hc-light"],
+  html[data-theme="hc-light"] body { background: #ffffff; color: #000000; }
+  [data-theme="hc-light"] .slice::before { background: #000000; filter: none; }
+  [data-theme="hc-light"] .rule { display: none; }
+  /* Current conditions sit on black slice → white text (same as dark default, reinforce) */
+  [data-theme="hc-light"] .big-temp   { color: #ffffff; text-shadow: none; }
+  [data-theme="hc-light"] .city-label { color: rgba(255,255,255,0.85); }
+  [data-theme="hc-light"] .cond-label { color: rgba(255,255,255,0.75); }
+  [data-theme="hc-light"] .hl-label   { color: rgba(255,255,255,0.65); }
+  /* Info section sits on white bg → black text */
+  [data-theme="hc-light"] .sec-head   { color: rgba(0,0,0,0.52); }
+  [data-theme="hc-light"] .det-lbl    { color: rgba(0,0,0,0.52); }
+  [data-theme="hc-light"] .det-val    { color: #000000; }
+  [data-theme="hc-light"] .fc-card,
+  [data-theme="hc-light"] .hr-card    { background: rgba(0,0,0,0.05); border: 2px solid rgba(0,0,0,0.72); }
+  [data-theme="hc-light"] .fc-day-name,
+  [data-theme="hc-light"] .hr-time    { color: rgba(0,0,0,0.58); }
+  [data-theme="hc-light"] .fc-hi      { color: #000000; }
+  [data-theme="hc-light"] .fc-lo      { color: rgba(0,0,0,0.55); }
+  [data-theme="hc-light"] .hr-temp    { color: #000000; }
+  [data-theme="hc-light"] .hr-pop     { color: #005fa0; }
+  [data-theme="hc-light"] .footer-text { color: rgba(0,0,0,0.4); }
+
   /* ════════════ LANDSCAPE ════════════
      True 45°: from (70%W, 0) to (10%W, H).  Dark area center ≈ (69%, 50%). */
   [data-layout="landscape"] .slice {

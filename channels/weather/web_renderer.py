@@ -132,6 +132,7 @@ class WeatherHtmlRenderer:
         onecall = extras.get("onecall") or {}
         aq = extras.get("air_quality") or {}
         theme = cfg.theme
+        icon_theme = "light" if "light" in theme else "dark"
         units = cfg.units
         layout = self._layout_for(cfg, width, height)
 
@@ -173,7 +174,7 @@ class WeatherHtmlRenderer:
                     label = "--"
                 hourly_items.append({
                     "time":   label,
-                    "icon":   self._icon_uri(slot["icon"], theme),
+                    "icon":   self._icon_uri(slot["icon"], icon_theme),
                     "temp":   self._temp(slot["temp"], units),
                     "precip": slot.get("pop", 0),
                 })
@@ -188,7 +189,7 @@ class WeatherHtmlRenderer:
                     abbr = day["date"][:3].upper()
                 forecast_items.append({
                     "day":  abbr,
-                    "icon": self._icon_uri(day["icon"], theme),
+                    "icon": self._icon_uri(day["icon"], icon_theme),
                     "high": self._temp(day["temp_max"], units),
                     "low":  self._temp(day["temp_min"], units),
                 })
@@ -200,7 +201,7 @@ class WeatherHtmlRenderer:
             # Current
             "temp":       self._temp(current["main"]["temp"], units),
             "condition":  current["weather"][0]["description"].title(),
-            "icon":       self._icon_uri(icon_code, theme),
+            "icon":       self._icon_uri(icon_code, icon_theme),
             "icon_code":  icon_code,
             # H/L
             "high":       self._temp(current["main"]["temp_max"], units) if cfg.show_high_low else None,

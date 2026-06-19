@@ -30,6 +30,28 @@
     --accent: #0277bd;
     --dim:    rgba(26,29,38,0.35);
   }
+  [data-theme="hc-dark"] {
+    --bg:     #000000;
+    --bg2:    #0f0f0f;
+    --border: rgba(255,255,255,0.75);
+    --text:   #ffffff;
+    --sub:    rgba(255,255,255,0.7);
+    --accent: #ffffff;
+    --dim:    rgba(255,255,255,0.5);
+  }
+  [data-theme="hc-light"] {
+    --bg:     #ffffff;
+    --bg2:    #e8e8e8;
+    --border: rgba(0,0,0,0.75);
+    --text:   #000000;
+    --sub:    rgba(0,0,0,0.7);
+    --accent: #000000;
+    --dim:    rgba(0,0,0,0.5);
+  }
+  /* HC: bolder borders for e-ink clarity */
+  [data-theme^="hc-"] .detail-pill,
+  [data-theme^="hc-"] .fc-day,
+  [data-theme^="hc-"] .hr-slot { border-width: 2px; }
 
   body { background: var(--bg); color: var(--text); }
 

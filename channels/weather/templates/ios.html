@@ -371,6 +371,88 @@
   [data-theme="light"] [data-layout="square"] .fc-day {
     border-right-color: rgba(17,34,56,0.12);
   }
+
+  /* ── HIGH CONTRAST DARK — solid black, no gradients, solid bordered cards ── */
+  [data-theme="hc-dark"] body {
+    background: #000000;
+    color: #ffffff;
+    text-shadow: none;
+  }
+  [data-theme="hc-dark"] body::before,
+  [data-theme="hc-dark"] body::after { display: none; }
+  [data-theme="hc-dark"] .icon-wrap img { filter: none; }
+  [data-theme="hc-dark"] .glass {
+    background: #1a1a1a;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 2px solid rgba(255,255,255,0.85);
+    box-shadow: none;
+  }
+  [data-theme="hc-dark"] .glass-subtle {
+    background: #111111;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 2px solid rgba(255,255,255,0.6);
+    box-shadow: none;
+  }
+  [data-theme="hc-dark"] [data-layout="landscape"] .fc-day,
+  [data-theme="hc-dark"] [data-layout="portrait"] .fc-day {
+    border-bottom-color: rgba(255,255,255,0.4);
+  }
+  [data-theme="hc-dark"] [data-layout="landscape"] .hr-slot,
+  [data-theme="hc-dark"] [data-layout="portrait"] .hr-slot,
+  [data-theme="hc-dark"] [data-layout="square"] .fc-day {
+    border-right-color: rgba(255,255,255,0.4);
+  }
+
+  /* ── HIGH CONTRAST LIGHT — solid white, no gradients, solid bordered cards ── */
+  [data-theme="hc-light"] body {
+    background: #ffffff;
+    color: #000000;
+    text-shadow: none;
+  }
+  [data-theme="hc-light"] body::before,
+  [data-theme="hc-light"] body::after { display: none; }
+  [data-theme="hc-light"] .icon-wrap img { filter: none; }
+  [data-theme="hc-light"] .glass {
+    background: #dcdcdc;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 2px solid rgba(0,0,0,0.85);
+    box-shadow: none;
+  }
+  [data-theme="hc-light"] .glass-subtle {
+    background: #ebebeb;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 2px solid rgba(0,0,0,0.6);
+    box-shadow: none;
+  }
+  /* Override white text from default body color to black */
+  [data-theme="hc-light"] .city,
+  [data-theme="hc-light"] .temp,
+  [data-theme="hc-light"] .condition,
+  [data-theme="hc-light"] .hl,
+  [data-theme="hc-light"] .updated,
+  [data-theme="hc-light"] .card-title,
+  [data-theme="hc-light"] .fc-day-name,
+  [data-theme="hc-light"] .fc-hi,
+  [data-theme="hc-light"] .hr-temp,
+  [data-theme="hc-light"] .value-sm { color: #000000; opacity: 1; }
+  [data-theme="hc-light"] .label { color: #333333; opacity: 1; }
+  [data-theme="hc-light"] .dim   { color: #444444; opacity: 1; }
+  [data-theme="hc-light"] .fc-lo { color: #444444; opacity: 1; }
+  [data-theme="hc-light"] .hr-time,
+  [data-theme="hc-light"] .hr-pop { color: #333333; opacity: 1; }
+  [data-theme="hc-light"] [data-layout="landscape"] .fc-day,
+  [data-theme="hc-light"] [data-layout="portrait"] .fc-day {
+    border-bottom-color: rgba(0,0,0,0.4);
+  }
+  [data-theme="hc-light"] [data-layout="landscape"] .hr-slot,
+  [data-theme="hc-light"] [data-layout="portrait"] .hr-slot,
+  [data-theme="hc-light"] [data-layout="square"] .fc-day {
+    border-right-color: rgba(0,0,0,0.4);
+  }
 </style>
 </head>
 <body>

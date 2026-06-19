@@ -732,8 +732,10 @@ class WeatherManager extends HTMLElement {
               <div class="field">
                 <label>Theme</label>
                 <select data-field="theme">
-                  <option value="dark"  ${form.theme === 'dark'  ? 'selected' : ''}>Dark</option>
-                  <option value="light" ${form.theme === 'light' ? 'selected' : ''}>Light</option>
+                  <option value="dark"     ${form.theme === 'dark'     ? 'selected' : ''}>Dark</option>
+                  <option value="light"    ${form.theme === 'light'    ? 'selected' : ''}>Light</option>
+                  <option value="hc-dark"  ${form.theme === 'hc-dark'  ? 'selected' : ''}>High Contrast Dark (e-ink)</option>
+                  <option value="hc-light" ${form.theme === 'hc-light' ? 'selected' : ''}>High Contrast Light (e-ink)</option>
                 </select>
               </div>
             </div>
