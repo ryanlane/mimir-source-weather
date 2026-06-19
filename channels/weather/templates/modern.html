@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-layout="{{ layout }}">
+<html data-theme="{{ theme }}" data-layout="{{ layout }}">
 <head>
 <meta charset="utf-8">
 <style>
@@ -11,6 +11,12 @@
     background: #06080f;
     color: #fff;
     font-family: 'Arial Black', 'Franklin Gothic Heavy', 'Haettenschweiler', Impact, Arial, sans-serif;
+  }
+
+  html[data-theme="light"],
+  html[data-theme="light"] body {
+    background: #eaf3ff;
+    color: #10243a;
   }
 
   .wrap {
@@ -184,6 +190,29 @@
     color: rgba(255,255,255,0.2);
     padding-top: 6px;
   }
+
+  [data-theme="light"] .big-temp {
+    color: #10243a;
+    text-shadow: 0 0 36px rgba(255,255,255,0.55);
+  }
+  [data-theme="light"] .city-label { color: rgba(16,36,58,0.74); }
+  [data-theme="light"] .cond-label { color: rgba(16,36,58,0.6); }
+  [data-theme="light"] .hl-label { color: rgba(16,36,58,0.5); }
+
+  [data-theme="light"] .sec-head { color: rgba(16,36,58,0.42); }
+  [data-theme="light"] .det-lbl { color: rgba(16,36,58,0.44); }
+  [data-theme="light"] .det-val { color: #10243a; }
+
+  [data-theme="light"] .fc-card,
+  [data-theme="light"] .hr-card {
+    background: rgba(255,255,255,0.58);
+    border-color: rgba(16,36,58,0.16);
+  }
+  [data-theme="light"] .fc-day-name,
+  [data-theme="light"] .hr-time { color: rgba(16,36,58,0.5); }
+  [data-theme="light"] .fc-lo { color: rgba(16,36,58,0.48); }
+  [data-theme="light"] .hr-pop { color: #2e78bf; }
+  [data-theme="light"] .footer-text { color: rgba(16,36,58,0.42); }
 
   /* ════════════ LANDSCAPE ════════════
      True 45°: from (70%W, 0) to (10%W, H).  Dark area center ≈ (69%, 50%). */
