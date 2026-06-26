@@ -11,6 +11,8 @@ from typing import Any, Dict, List, Optional
 
 import requests
 
+from .mimir_utils import http_session, validate_key_nonempty
+
 logger = logging.getLogger("mimir.channels.weather.fetcher")
 
 _API_BASE = "https://api.openweathermap.org"
@@ -66,19 +68,14 @@ _OWM_TO_GOOGLE_DARK: dict[str, str] = {
 }
 
 
-def _session() -> requests.Session:
-    s = requests.Session()
-    s.headers["User-Agent"] = _USER_AGENT
-    return s
-
-
 # ---------------------------------------------------------------------------
 # API key
 
 def validate_api_key(api_key: str) -> Dict[str, Any]:
     """Returns {valid, error}."""
-    if not api_key or not api_key.strip():
-        return {"valid": False, "error": "API key is empty"}
+    result = validate_key_nonempty(api_key)
+    if not result["valid"]:
+        return result
     try:
         resp = requests.get(
             f"{_API_BASE}/data/2.5/weather",
@@ -133,7 +130,7 @@ def search_city(query: str, api_key: str, limit: int = 5) -> List[Dict[str, Any]
 # Weather data
 
 def get_current_weather(lat: float, lon: float, api_key: str, units: str = "imperial") -> Dict[str, Any]:
-    resp = _session().get(
+    resp = http_session(_USER_AGENT).get(
         f"{_API_BASE}/data/2.5/weather",
         params={"lat": lat, "lon": lon, "appid": api_key, "units": units},
         timeout=15,
@@ -144,7 +141,7 @@ def get_current_weather(lat: float, lon: float, api_key: str, units: str = "impe
 
 def get_forecast(lat: float, lon: float, api_key: str, units: str = "imperial") -> Dict[str, Any]:
     """Returns {"daily": [...], "hourly": [...]} from the 5-day/3-hour forecast."""
-    resp = _session().get(
+    resp = http_session(_USER_AGENT).get(
         f"{_API_BASE}/data/2.5/forecast",
         params={"lat": lat, "lon": lon, "appid": api_key, "units": units, "cnt": 40},
         timeout=15,
@@ -283,7 +280,7 @@ def get_air_quality(lat: float, lon: float, api_key: str) -> Optional[Dict[str, 
     """Returns AQI data from OWM Air Pollution API (free tier).
     Returns None on any failure so callers can treat it as optional."""
     try:
-        resp = _session().get(
+        resp = http_session(_USER_AGENT).get(
             f"{_API_BASE}/data/2.5/air_pollution",
             params={"lat": lat, "lon": lon, "appid": api_key},
             timeout=10,
@@ -313,7 +310,7 @@ def get_onecall_extras(lat: float, lon: float, api_key: str, units: str = "imper
     """Returns UV index and dew point from One Call 2.5 (free for many keys).
     Returns None silently if the key doesn't have access."""
     try:
-        resp = _session().get(
+        resp = http_session(_USER_AGENT).get(
             f"{_API_BASE}/data/2.5/onecall",
             params={
                 "lat": lat, "lon": lon, "appid": api_key, "units": units,
