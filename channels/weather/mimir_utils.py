@@ -182,6 +182,20 @@ class JsonCache:
         self._save()
 
     # ------------------------------------------------------------------
+    # Override (optional)
+
+    def _empty_state(self) -> dict[str, Any]:
+        """Return the initial empty state when no cache file exists.
+
+        Override when your cache uses a nested structure rather than a flat dict::
+
+            class PosterCache(JsonCache):
+                def _empty_state(self):
+                    return {"sources": {}}
+        """
+        return {}
+
+    # ------------------------------------------------------------------
     # Internal
 
     def _load(self) -> dict[str, Any]:
@@ -190,7 +204,7 @@ class JsonCache:
                 return json.loads(self._path.read_text())
             except Exception:
                 logger.warning("JsonCache: corrupt cache file %s — starting empty", self._path)
-        return {}
+        return self._empty_state()
 
     def _save(self) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
